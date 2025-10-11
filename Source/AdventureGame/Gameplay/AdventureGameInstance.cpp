@@ -230,14 +230,9 @@ void UAdventureGameInstance::LoadGame()
 
 	DestroyInventory();
 	CreateInventory();
-	AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
 	for (const EItemKind Item : CurrentSaveGame->Inventory)
 	{
 		UInventoryItem *NewItem = Inventory->AddItemToInventory(Item);
-		if (AdventurePlayerController)
-		{
-			NewItem->SetAdventurePlayerController(AdventurePlayerController);
-		}
 	}
 	BindInventoryChangedHandlers();
 

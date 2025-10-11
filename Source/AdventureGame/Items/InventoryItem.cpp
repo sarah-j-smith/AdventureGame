@@ -3,10 +3,12 @@
 
 #include "InventoryItem.h"
 
-#include "../Constants.h"
-#include "../AdventureGame.h"
-#include "../Player/AdventurePlayerController.h"
-#include "ItemList.h"
+#include "AdventureGame/Constants.h"
+#include "AdventureGame/AdventureGame.h"
+
+#include "AdventureGame/Enums/VerbType.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
+
 #include "Internationalization/StringTableRegistry.h"
 
 //////////////////////////////////
@@ -18,11 +20,10 @@ void UInventoryItem::OnItemUseSuccess_Implementation()
 {
     UE_LOG(LogAdventureGame, Log, TEXT("OnItemUseSuccess Success - default."));
     
-    if (UItemDataAsset *ItemDataAsset = OnUseSuccessItem.LoadSynchronous())
+    if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::Use))
     {
         if (AAdventurePlayerController *Apc = GetAdventurePlayerController())
         {
-            ItemDataAsset->SetAdventurePlayerController(Apc);
             ItemDataAsset->OnItemUseSuccess();
             return;
         }
@@ -37,11 +38,10 @@ void UInventoryItem::OnItemUseFailure_Implementation()
 
 void UInventoryItem::OnItemGiveSuccess_Implementation()
 {
-    if (UItemDataAsset *ItemDataAsset = OnGiveSuccessItem.LoadSynchronous())
+    if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::Give))
     {
         if (AAdventurePlayerController *Apc = GetAdventurePlayerController())
         {
-            ItemDataAsset->SetAdventurePlayerController(Apc);
             ItemDataAsset->OnItemGiveSuccess();
             return;
         }
@@ -52,6 +52,30 @@ void UInventoryItem::OnItemGiveSuccess_Implementation()
 void UInventoryItem::OnItemGiveFailure_Implementation()
 {
     BarkAndEnd(LOCTABLE(ITEM_STRINGS_KEY, "ItemGivenDefaultText"));
+}
+
+UItemDataAsset* UInventoryItem::ItemDataAssetForAction(const EVerbType Verb) const
+{
+    // TODO - remove this bit of code once the deprecated OnUseSuccessItem and OnGiveSuccessItem are gone
+    if (Verb == EVerbType::Use)
+    {
+        if (UItemDataAsset *UseItem = OnUseSuccessItem.LoadSynchronous())
+        {
+            UE_LOG(LogAdventureGame, Warning, TEXT("OnUseSuccessItem is deprecated in %s - use OnItemActivated instead"),
+                *(ShortDescription.ToString()));
+            return UseItem;
+        }
+    }
+    else if (Verb == EVerbType::Give)
+    {
+        if (UItemDataAsset *UseItem = OnGiveSuccessItem.LoadSynchronous())
+        {
+            UE_LOG(LogAdventureGame, Warning, TEXT("OnGiveSuccessItem is deprecated in %s - use OnItemActivated instead"),
+                *(ShortDescription.ToString()));
+            return UseItem;
+        }
+    }
+    return OnItemActivated.GetItemDataAssetForAction(Verb);
 }
 
 void UInventoryItem::OnClose_Implementation()
@@ -137,7 +161,7 @@ void UInventoryItem::OnItemUsed_Implementation()
 
     // **this** InventoryItem is the target and APC->SourceItem is the source of a Use
     // verb. Check that the Source can validly use on this.
-    if (const auto Apc = AdventurePlayerController.Pin())
+    if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
     {
         if (AdventurePlayerController->SourceItem->ItemKind == ItemKind)
         {
@@ -152,9 +176,9 @@ void UInventoryItem::OnItemUsed_Implementation()
             // This item has interactable item
             OnItemUseSuccess();
         }
-        else if (const UItemDataAsset *ItemDataAsset = OnUseSuccessItem.LoadSynchronous())
+        else if (const UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::UseItem))
         {
-            // We are the target, the second item clicked, the pickle.
+            // We are the target, the second item clicked
             const EItemKind SrcKind = AdventurePlayerController->SourceItem->ItemKind;
             const EItemKind TgtKind = AdventurePlayerController->TargetItem->ItemKind;
             if (ItemDataAsset->SourceItem == SrcKind && ItemDataAsset->TargetItem == TgtKind)
@@ -179,38 +203,10 @@ void UInventoryItem::OnItemUsed_Implementation()
 void UInventoryItem::OnItemGiven_Implementation()
 {
     IVerbInteractions::OnItemGiven_Implementation();
-    if (const auto Apc = AdventurePlayerController.Pin())
+    if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
     {
+        // TODO Giving items not yet implemented
         // AdventurePlayerController->GiveAnItem(ItemKind);
     }
     BarkAndEnd(LOCTABLE(ITEM_STRINGS_KEY, "ItemGivenDefaultText"));
-}
-
-void UInventoryItem::BarkAndEnd(FText BarkText)
-{
-    if (const auto Apc = AdventurePlayerController.Pin())
-    {
-        Apc->PlayerBark(BarkText);
-        Apc->ShouldInterruptCurrentActionOnNextTick = true;
-    }
-}
-
-AAdventurePlayerController *UInventoryItem::GetAdventurePlayerController() const
-{
-    return AdventurePlayerController.Get();
-}
-
-UItemList *UInventoryItem::GetItemList() const
-{
-    return ItemList.Get();
-}
-
-void UInventoryItem::SetAdventurePlayerController(AAdventurePlayerController* Controller)
-{
-    AdventurePlayerController = Controller;
-}
-
-void UInventoryItem::SetItemList(UItemList *ItemList)
-{
-    this->ItemList = ItemList;
 }

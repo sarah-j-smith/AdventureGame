@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "ItemDataAsset.h"
+#include "ItemDataList.h"
 #include "../Enums/ItemKind.h"
 #include "../Gameplay/VerbInteractions.h"
 #include "AdventureGame/Enums/DoorState.h"
+#include "AdventureGame/Enums/VerbType.h"
+#include "AdventureGame/Player/AdventureControllerProvider.h"
 #include "Internationalization/StringTableRegistry.h"
 #include "Paper2D/Classes/PaperSprite.h"
 #include "InventoryItem.generated.h"
@@ -18,7 +21,7 @@ class UItemList;
  * The `Item` in our inventory.
  */
 UCLASS(BlueprintType, Blueprintable, EditInlineNew)
-class ADVENTUREGAME_API UInventoryItem : public UObject, public IVerbInteractions
+class ADVENTUREGAME_API UInventoryItem : public UObject, public IVerbInteractions, public IAdventureControllerProvider
 {
     GENERATED_BODY()
 public:
@@ -58,6 +61,7 @@ public:
     /// The Data Asset is an <b>instance</b> of the <code>ItemDataAsset</code> sub-class, not the
     /// class itself. Right-click in the content drawer, and choose <i>Miscellaneous > Data Asset</i>
     /// then choose one of the <code>ItemDataAsset</code> sub-classes to create an instance.
+    /// @deprecated Use OnItemActivated instead
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
     TSoftObjectPtr<UItemDataAsset> OnUseSuccessItem;
 
@@ -65,9 +69,21 @@ public:
     /// an <b>instance</b> of the <code>ItemDataAsset</code> sub-class, not the
     /// class itself. Right-click in the content drawer, and choose <i>Miscellaneous > Data Asset</i>
     /// then choose one of the <code>ItemDataAsset</code> sub-classes to create an instance.
+    /// @deprecated Use OnItemActivated instead
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
     TSoftObjectPtr<UItemDataAsset> OnGiveSuccessItem;
 
+    /// Data Asset for determining results of successfully activating this item. This should be
+    /// an <b>instance</b> of the <code>ItemDataAsset</code> sub-class, not the
+    /// class itself. Right-click in the content drawer, and choose <i>Miscellaneous > Data Asset</i>
+    /// then choose one of the <code>ItemDataAsset</code> sub-classes to create an instance.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
+    FItemDataList OnItemActivated;
+
+private:
+    UItemDataAsset* ItemDataAssetForAction(EVerbType Verb) const;
+
+public:
     /// An item kind that can meaningfully interact with this one. Used when
     /// items are combined in the inventory.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
@@ -142,43 +158,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "VerbInteractions")
     virtual void OnItemGiven_Implementation() override;
-    
-    //////////////////////////////////
-    ///
-    /// ITEM TEXT
-    ///
-
-    /// Player barks a message and then immediately ends any action sequence
-    /// they were doing. Use when the blueprint event logic should end with a bark.
-    /// @param BarkText FText for the player to bark. Should be translatable.
-    UFUNCTION(BlueprintCallable, Category = "Player Actions")
-    void BarkAndEnd(FText BarkText);
-
-    // https://medium.com/@lemapp09/learning-unreal-managing-object-lifecycles-in-unreal-engine-fa79ba9bb51c
-    // Unreal Engine uses a garbage collection system to manage memory for UObject-derived classes.
-    // The engine automatically tracks references to UObjects and collects them when they are no
-    // longer needed.
-    // 
-    // Always use the `UPROPERTY` macro for UObject references to ensure proper garbage collection.
-    // This helps the engine keep track of references and prevents premature destruction.
-    //
-    // Note: I did try using a Pimpl idiom here but that does not work with classes that are
-    // exposed to Blueprints, as far as I can tell. Because those Blueprint exposed classes
-    // have to be UObjects and have the destructor automatically generated.
-
-    /// Inventory item local reference to the Adventure Player Controller object.
-    /// Might be null, check before using.
-    UFUNCTION(BlueprintCallable, Category = "Player Actions")
-    AAdventurePlayerController *GetAdventurePlayerController() const;
-
-    /// Inventory item local reference to the Item List that this item is a member of.
-    /// Might be null, check before using.
-    UFUNCTION(BlueprintCallable, Category = "Player Actions")
-    UItemList *GetItemList() const;
-
-    void SetAdventurePlayerController(AAdventurePlayerController* Controller);
-
-    void SetItemList(UItemList *ItemList);
 
     //////////////////////////////////
     ///
@@ -197,10 +176,4 @@ public:
     {
         return ItemToInteract->InteractableItem == ItemKind || ItemToInteract->ItemKind == InteractableItem;
     }
-    
-private:
-
-    TWeakObjectPtr<AAdventurePlayerController> AdventurePlayerController;
-    
-    TWeakObjectPtr<UItemList> ItemList;
 };

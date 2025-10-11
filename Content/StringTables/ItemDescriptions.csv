@@ -17,4 +17,5 @@ Pull,Pull,"Pull as in ""pull lever"""
 Walk_to,Walk to,"Walk to as in ""walk to doorway"""
 Use_item,Use on,"Use on as in ""use on dirty floor"""
 Give_item,Give to,"Give to as in ""give to guard"""
-None,unknown,Default text for an item of an unknown kind
+None,Unknown,Default text for an item of an unknown kind
+Score,Score {ScoreValue},Report the current score as a templated integer

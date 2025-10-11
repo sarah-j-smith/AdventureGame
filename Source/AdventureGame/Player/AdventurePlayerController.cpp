@@ -104,12 +104,11 @@ void AAdventurePlayerController::BeginPlay()
     SetupAnimationDelegates();
 
     SetupHUD();
-
+    SetupCommandManager();
+    
     UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
     UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
     AdventureGameInstance->OnLoadRoom();
-
-    AdventureGameInstance->Inventory->AddAdventurePlayerControllerWeakRef(this);
 
     TriggerUpdateInteractionText();
     APawn* Pawn = SetupPuck(PlayerCharacter);
@@ -258,9 +257,9 @@ void AAdventurePlayerController::SetupCommandManager()
     }
     else
     {
-        UE_LOG(LogAdventureGame, Display, TEXT("Spawning %s - none found in scene"), *CommandManagerToSpawn->GetName());
-        Actor = GetWorld()->SpawnActor(CommandManagerToSpawn);
-        Command = Cast<ACommandManager>(Actor);
+        // UE_LOG(LogAdventureGame, Display, TEXT("Spawning %s - none found in scene"), *CommandManagerToSpawn->GetName());
+        // Actor = GetWorld()->SpawnActor(CommandManagerToSpawn);
+        // Command = Cast<ACommandManager>(Actor);
     }
     if (Command)
     {
@@ -439,7 +438,6 @@ UInventoryItem* AAdventurePlayerController::ItemAddToInventory(const EItemKind& 
         {
             if (UInventoryItem* Item = Inventory->AddItemToInventory(ItemToAdd))
             {
-                Item->SetAdventurePlayerController(this);
                 return Item;
             }
         }

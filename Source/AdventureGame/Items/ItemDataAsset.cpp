@@ -12,27 +12,25 @@
 
 void UItemDataAsset::OnItemGiveSuccess_Implementation()
 {
-    if (AAdventurePlayerController *AdventurePlayerController = Apc.Get())
-    {
-        Apc->ItemRemoveFromInventory(SourceItem);
-    }
+    AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
+    check(AdventurePlayerController);
+    AdventurePlayerController->ItemRemoveFromInventory(SourceItem);
     StartTimer();
 }
 
 void UItemDataAsset::OnItemUseSuccess_Implementation()
 {
-    AAdventurePlayerController *AdventurePlayerController = Apc.Get();
-    ensureAlways(AdventurePlayerController);
+    AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
+    check(AdventurePlayerController);
     bool Success = true;
     UInventoryItem* NewItem;
     switch (SourceItemAssetType)
     {
     case EItemAssetType::Consumable:
-        Apc->ItemRemoveFromInventory(SourceItem);
+        AdventurePlayerController->ItemRemoveFromInventory(SourceItem);
         break;
     case EItemAssetType::Tool:
-        NewItem = Apc->ItemAddToInventory(ToolResultItem);
-        NewItem->SetAdventurePlayerController(AdventurePlayerController);
+        NewItem = AdventurePlayerController->ItemAddToInventory(ToolResultItem);
         break;
     case EItemAssetType::Key:
         if (AHotSpot* ThisHotSpot = AdventurePlayerController->CurrentHotSpot)
@@ -70,7 +68,7 @@ void UItemDataAsset::OnItemUseSuccess_Implementation()
 
 void UItemDataAsset::OnItemGiveFailure_Implementation()
 {
-    if (AAdventurePlayerController* AdventurePlayerController = Apc.Get())
+    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
     {
         AdventurePlayerController->PlayerBark(GiveFailureBarkText);
     }
@@ -78,7 +76,7 @@ void UItemDataAsset::OnItemGiveFailure_Implementation()
 
 void UItemDataAsset::OnItemUseFailure_Implementation()
 {
-    if (AAdventurePlayerController* AdventurePlayerController = Apc.Get())
+    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
     {
         AdventurePlayerController->PlayerBark(UseFailureBarkText);
     }
@@ -86,21 +84,16 @@ void UItemDataAsset::OnItemUseFailure_Implementation()
 
 void UItemDataAsset::OnInteractionTimeout()
 {
-    if (AAdventurePlayerController* AdventurePlayerController = Apc.Get())
+    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
     {
         AdventurePlayerController->InterruptCurrentAction();
     }
 }
 
-void UItemDataAsset::SetAdventurePlayerController(AAdventurePlayerController* PlayerController)
-{
-    Apc = PlayerController;
-}
-
 void UItemDataAsset::StartTimer()
 {
     if (TimerRunning) return;
-    if (AAdventurePlayerController* AdventurePlayerController = Apc.Get())
+    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
     {
         AdventurePlayerController->InterruptCurrentAction();
         TimerRunning = true;
@@ -114,7 +107,7 @@ void UItemDataAsset::StartTimer()
 void UItemDataAsset::StopTimer()
 {
     if (!TimerRunning) return;
-    if (AAdventurePlayerController* AdventurePlayerController = Apc.Get())
+    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
     {
         TimerRunning = false;
         AdventurePlayerController->GetWorldTimerManager().ClearTimer(ActionHighlightTimerHandle);

@@ -24,6 +24,13 @@ int32 AdvGameUtils::GetUUID()
     return UUIDLatent[0] | UUIDLatent[1] << 8 | UUIDLatent[2] << 16 | UUIDLatent[3] << 24;
 }
 
+FText AdvGameUtils::GetScoreText(int32 Score)
+{
+    FFormatNamedArguments ScoreArgs;
+    ScoreArgs.Add("ScoreValue", Score);
+    return FText::Format(LOCTABLE(UI_STRINGS_KEY, G_SCORE_TEMPLATE_KEY), ScoreArgs);
+}
+
 FText AdvGameUtils::GetGivingItemText(const UInventoryItem* CurrentItem, const UInventoryItem* TargetItem,
                                       const AHotSpot* HotSpot)
 {

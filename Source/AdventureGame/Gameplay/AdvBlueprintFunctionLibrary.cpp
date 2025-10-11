@@ -4,6 +4,7 @@
 #include "AdvBlueprintFunctionLibrary.h"
 
 #include "AdventureGameInstance.h"
+#include "AdventureGameModeBase.h"
 #include "AdventureGame/Player/AdventurePlayerController.h"
 #include "AdventureGame/Enums/ItemKind.h"
 #include "AdventureGame/Constants.h"
@@ -12,6 +13,19 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+void UAdvBlueprintFunctionLibrary::AddToScore(const UObject* WorldContextObject, int32 ScoreIncrement)
+{
+    if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject,
+                                                             EGetWorldErrorMode::LogAndReturnNull))
+    {
+        AGameModeBase *GameMode = UGameplayStatics::GetGameMode(WorldContextObject);
+        if (AAdventureGameModeBase *AdventureGameMode = Cast<AAdventureGameModeBase>(GameMode))
+        {
+            AdventureGameMode->AddToScore(ScoreIncrement);
+        }
+    }
+}
 
 AAdventurePlayerController* UAdvBlueprintFunctionLibrary::GetAdventureController(const UObject* WorldContextObject)
 {
@@ -131,18 +145,7 @@ bool UAdvBlueprintFunctionLibrary::IsCharacterCloseToHotSpot(AHotSpot* HotSpot, 
         UE_LOG(LogAdventureGame, Error, TEXT("HotSpot == nullptr"));
         return false;
     }
-    if (AdventureCharacter == nullptr)
-    {
-        UE_LOG(LogAdventureGame, Error, TEXT("AdventureCharacter == nullptr"));
-        return false;
-    }
-    const float Distance = FVector::Distance(HotSpot->WalkToPosition,
-                             AdventureCharacter->GetCapsuleComponent()->GetComponentLocation());
-    if (Distance < Tolerance)
-    {
-        UE_LOG(LogAdventureGame, Display, TEXT("Test passed"));
-    }
-    return Distance < Tolerance;
+    return IsCharacterCloseToLocation(HotSpot->WalkToPosition, AdventureCharacter, Tolerance);
 }
 
 bool UAdvBlueprintFunctionLibrary::IsCharacterCloseToLocation(FVector Location, AAdventureCharacter* AdventureCharacter,
@@ -153,21 +156,29 @@ bool UAdvBlueprintFunctionLibrary::IsCharacterCloseToLocation(FVector Location, 
         UE_LOG(LogAdventureGame, Error, TEXT("Tolerance is too small - %f"), Tolerance);
         return false;
     }
+    return GetCharacterDistanceToLocation(Location, AdventureCharacter) < Tolerance;
+}
+
+float UAdvBlueprintFunctionLibrary::GetCharacterDistanceToLocation(FVector Location, AAdventureCharacter* AdventureCharacter)
+{
     if (AdventureCharacter == nullptr)
     {
-        UE_LOG(LogAdventureGame, Error, TEXT("AdventureCharacter == nullptr"));
-        return false;
+        UE_LOG(LogAdventureGame, Error, TEXT("%hs: AdventureCharacter == nullptr"), __FUNCTION__);
+        return std::numeric_limits<float>::infinity();
     }
     if (UCapsuleComponent *Capsule = AdventureCharacter->GetCapsuleComponent())
     {
         FVector WorldLocation = Capsule->GetComponentLocation();
         if (WorldLocation != FVector::ZeroVector)
         {
-            return FVector::Distance(Location, WorldLocation) < Tolerance;
+            WorldLocation.Z = Location.Z; // Ignore the Z, only test X & Y.
+            return FVector::Distance(Location, WorldLocation);
         }
-        UE_LOG(LogAdventureGame, Warning, TEXT("Player position was (0, 0, 0)!"));
-        return false;
+        UE_LOG(LogAdventureGame, Warning, TEXT("%hs: Player position was (0, 0, 0)!"), __FUNCTION__);
     }
-    UE_LOG(LogAdventureGame, Error, TEXT("Could not get player character capsule component!"));
-    return false;
+    else
+    {
+        UE_LOG(LogAdventureGame, Warning, TEXT("%hs: Player capsule component null"), __FUNCTION__);
+    }
+    return std::numeric_limits<float>::infinity();
 }

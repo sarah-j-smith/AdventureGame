@@ -3,10 +3,11 @@
 
 #include "HotSpot.h"
 
-#include "../Constants.h"
-#include "../AdventureGame.h"
-#include "../Player/AdventureCharacter.h"
-#include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/Constants.h"
+#include "AdventureGame/AdventureGame.h"
+
+#include "AdventureGame/Player/AdventureCharacter.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
 #include "AdventureGame/Enums/AdventureGameplayTags.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"
 
@@ -19,8 +20,6 @@ AHotSpot::AHotSpot()
 	WalkToPoint = CreateDefaultSubobject<USphereComponent>(TEXT("PlayerDetectorSphere"));
 	WalkToPoint->SetupAttachment(RootComponent);
 	WalkToPoint->SetSphereRadius(4.0f);
-
-	
 }
 
 void AHotSpot::BeginPlay()
@@ -84,26 +83,43 @@ void AHotSpot::RegisterForSaveAndLoad()
 	}
 }
 
+UItemDataAsset* AHotSpot::ItemDataAssetForAction(EVerbType Verb) const
+{
+	// TODO - remove this bit of code once the deprecated OnUseSuccessItem and OnGiveSuccessItem are gone
+	if (Verb == EVerbType::Use)
+	{
+		if (UItemDataAsset *UseItem = OnUseSuccessItem.LoadSynchronous())
+		{
+			UE_LOG(LogAdventureGame, Warning, TEXT("OnUseSuccessItem is deprecated in %s - use OnItemActivated instead"),
+				*(ShortDescription.ToString()));
+			return UseItem;
+		}
+	}
+	else if (Verb == EVerbType::Give)
+	{
+		if (UItemDataAsset *UseItem = OnGiveSuccessItem.LoadSynchronous())
+		{
+			UE_LOG(LogAdventureGame, Warning, TEXT("OnGiveSuccessItem is deprecated in %s - use OnItemActivated instead"),
+				*(ShortDescription.ToString()));
+			return UseItem;
+		}
+	}
+	return OnItemActivated.GetItemDataAssetForAction(Verb);
+}
+
 void AHotSpot::OnBeginCursorOver(AActor *TouchedActor)
 {
-	// GEngine->AddOnScreenDebugMessage(1, 3.0, FColor::White, TEXT("HotSpot::OnBeginCursorOver()"),
-	// 							 false, FVector2D(2.0, 2.0));
-
-	// UE_LOG(LogAdventureGame, VeryVerbose, TEXT("OnBeginCursorOver"));
-	APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *APC = Cast<AAdventurePlayerController>(PC); IsValid(APC))
+	if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
 	{
-		APC->MouseEnterHotSpot(this);
+		AdventurePlayerController->MouseEnterHotSpot(this);
 	}
 }
 
 void AHotSpot::OnEndCursorOver(AActor *TouchedActor)
 {
-	// UE_LOG(LogAdventureGame, VeryVerbose, TEXT("OnEndCursorOver"));
-	APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *APC = Cast<AAdventurePlayerController>(PC); IsValid(APC))
+	if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
 	{
-		APC->MouseLeaveHotSpot();
+		AdventurePlayerController->MouseLeaveHotSpot();
 	}
 }
 
@@ -183,35 +199,32 @@ void AHotSpot::OnWalkTo_Implementation()
 {
 	IVerbInteractions::OnWalkTo_Implementation();
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("On walk to"));
-	APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *APC = Cast<AAdventurePlayerController>(PC); IsValid(APC))
+	if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
 	{
-		if (APC->IsAlreadyAtHotspotClicked())
+		if (AdventurePlayerController->IsAlreadyAtHotspotClicked())
 		{
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("Subject"), ShortDescription);
-			APC->PlayerBark(FText::Format(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkAlreadyAt"), Args));
+			AdventurePlayerController->PlayerBark(FText::Format(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkAlreadyAt"), Args));
 		}
 		else
 		{
-			APC->PlayerBark(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkArrived"));;
+			AdventurePlayerController->PlayerBark(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkArrived"));;
 		}
-		APC->ShouldInterruptCurrentActionOnNextTick = true;
+		AdventurePlayerController->ShouldInterruptCurrentActionOnNextTick = true;
 	}
 }
 
 void AHotSpot::OnItemUsed_Implementation()
 {
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("On Item Used"));
-	if (UItemDataAsset *ItemDataAsset = OnUseSuccessItem.LoadSynchronous())
+	if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::UseItem))
 	{
-		APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (AAdventurePlayerController *Apc = Cast<AAdventurePlayerController>(PC))
+		if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
 		{
-			ItemDataAsset->SetAdventurePlayerController(Apc);
 			// Item was used on this hotspot, and the kind of that item matches the
 			// recipe in the ItemDataAsset. 
-			if (Apc->SourceItem->ItemKind == ItemDataAsset->SourceItem)
+			if (AdventurePlayerController->SourceItem->ItemKind == ItemDataAsset->SourceItem)
 			{
 				if (IsValid(ItemDataAsset->UseSuccessSound))
 				{
@@ -234,11 +247,9 @@ void AHotSpot::OnItemGiven_Implementation()
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("On Item Given"));
 	if (UItemDataAsset *ItemDataAsset = OnGiveSuccessItem.LoadSynchronous())
 	{
-		APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (AAdventurePlayerController *Apc = Cast<AAdventurePlayerController>(PC))
+		if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
 		{
-			ItemDataAsset->SetAdventurePlayerController(Apc);
-			if (Apc->SourceItem->ItemKind == ItemDataAsset->SourceItem)
+			if (AdventurePlayerController->SourceItem->ItemKind == ItemDataAsset->SourceItem)
 			{
 				ItemDataAsset->OnItemGiveSuccess();
 				return;
@@ -308,24 +319,5 @@ void AHotSpot::SetEnableMeshComponent(bool Enabled)
 			StaticMeshComponent->SetVisibility(false);
 			UE_LOG(LogAdventureGame, Verbose, TEXT("%s %s - static mesh is valid but disabled"), *HotSpotType, *HotSpotName);
 		}
-	}
-}
-
-void AHotSpot::Bark(const FText &Text) const
-{
-	APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *APC = Cast<AAdventurePlayerController>(PC); IsValid(APC))
-	{
-		APC->PlayerBark(Text);
-	}
-}
-
-void AHotSpot::BarkAndEnd(const FText& Text) const
-{
-	APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *APC = Cast<AAdventurePlayerController>(PC); IsValid(APC))
-	{
-		APC->PlayerBark(Text);
-		APC->ShouldInterruptCurrentActionOnNextTick = true;
 	}
 }

@@ -66,7 +66,6 @@ UInventoryItem *UItemList::AddItemToInventory(EItemKind ItemToAdd)
 		);
 		InventoryItem->ItemKind = ItemToAdd;
 	}
-	InventoryItem->SetItemList(this);
 	AddItemToInventory(InventoryItem);
 	OnInventoryChanged.Broadcast(Identifier, ItemToAdd, EItemDisposition::Added);
 #if WITH_EDITOR
@@ -116,15 +115,6 @@ void UItemList::GetInventoryItemsArray(TArray<UInventoryItem *> &Result) const
 		Result.Add(Iterator->Element);
 	}
 }
-
-void UItemList::AddAdventurePlayerControllerWeakRef(AAdventurePlayerController* AdventurePlayerController)
-{
-	for (const FInventoryList *Iterator = Inventory; Iterator; Iterator = Iterator->Next)
-	{
-		Iterator->Element->SetAdventurePlayerController(AdventurePlayerController);
-	}
-}
-
 
 void UItemList::DumpInventoryToLog() const
 {

@@ -47,7 +47,7 @@ void UInteractTask::Activate()
 	Super::Activate();
 
 	UE_LOG(LogAdventureGame, Log, TEXT("UInteractTask Activate - %s"), *(InteractionGetDescriptiveString(Interaction)));
-	
+	InteractionWasCompleted = Interaction;
 	switch (Interaction)
 	{
 	case EInteractionType::Interact:
@@ -67,8 +67,13 @@ void UInteractTask::Activate()
 		TurnRight();
 	case EInteractionType::None:
 		break;
+	default:
+		break;
 	}
-	GetAdventureController()->EndAction.AddUObject(this, &UInteractTask::InteractionCompleted);
+	if (AAdventurePlayerController *AdventurePlayerController = GetAdventureController())
+	{
+		AdventurePlayerController->EndAction.AddUObject(this, &UInteractTask::InteractionCompleted);
+	}
 }
 
 AAdventurePlayerController* UInteractTask::GetAdventureController() const

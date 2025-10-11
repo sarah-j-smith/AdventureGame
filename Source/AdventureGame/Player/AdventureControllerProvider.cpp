@@ -49,7 +49,8 @@ void IAdventureControllerProvider::BarkAndEnd(FText Text)
     if (AAdventurePlayerController *AdventureController = GetAdventurePlayerController())
     {
         AdventureController->PlayerBark(Text);
-        AdventureController->Command->bShouldInterruptCurrentActionOnNextTick = true;
+        if (AdventureController->Command)
+            AdventureController->Command->bShouldInterruptCurrentActionOnNextTick = true;
     }
 }
 

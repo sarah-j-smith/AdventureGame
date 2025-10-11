@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "AdventureGame/Enums/ItemAssetType.h"
 #include "AdventureGame/Enums/ItemKind.h"
+#include "AdventureGame/Enums/VerbType.h"
+#include "AdventureGame/Player/AdventureControllerProvider.h"
 #include "ItemDataAsset.generated.h"
 
 class AAdventurePlayerController;
@@ -18,10 +20,14 @@ class AHotSpot;
  * duplicating it in each item that needs to have the behaviour.
  */
 UCLASS()
-class ADVENTUREGAME_API UItemDataAsset : public UPrimaryDataAsset
+class ADVENTUREGAME_API UItemDataAsset : public UPrimaryDataAsset, public IAdventureControllerProvider
 {
 	GENERATED_BODY()
 public:
+	/// Score related to activating this item
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Score")
+	int32 ScoreOnSuccess;
+
 	/// How to treat the source item when using the default implementation
 	/// of OnItemUseSuccess.
 	/// Article - nothing, Consumable - destroy,
@@ -118,10 +124,6 @@ public:
 	
 	UFUNCTION()
 	void OnInteractionTimeout();
-
-	void SetAdventurePlayerController(AAdventurePlayerController *PlayerController);
 	
 	FTimerHandle ActionHighlightTimerHandle;
-private:
-	TWeakObjectPtr<AAdventurePlayerController> Apc;
 };

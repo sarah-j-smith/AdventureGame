@@ -129,6 +129,4 @@ public:
     /// Copy pointers to the current inventory into the given array out argument.
     /// @param Result Reference to an array of Inventory Item pointers. This array will be emptied and over-written.
     void GetInventoryItemsArray(TArray<UInventoryItem *> &Result) const;
-
-    void AddAdventurePlayerControllerWeakRef(AAdventurePlayerController *AdventurePlayerController);
 };

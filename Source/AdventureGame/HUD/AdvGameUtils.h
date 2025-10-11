@@ -12,6 +12,13 @@ struct AdvGameUtils
     static int32 GetUUID();
 
     /**
+     * Get the text as an FText for a numeric score to display in the interaction UI.
+     * @param Score Numeric score value to turn into text "Score: NNN"
+     * @return The resulting FText of the score
+     */
+    static FText GetScoreText(int32 Score);
+
+    /**
      * For giving an item to a hotspot or item, return the text as an FText
      * translatable / i18n ready - for direct use in the UI. At least one
      * of CurrentItem or TargetItem must be non-null.

@@ -23,7 +23,7 @@ public:
 	FScoreDelegate ScoreDelegate;
     
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	int32 Score;
+	int32 Score = 0;
 
 	UFUNCTION(BlueprintCallable)
 	void AddToScore(int32 Increment);

@@ -10,6 +10,7 @@
 #include "../Enums/WalkDirection.h"
 #include "Components/SphereComponent.h"
 #include "AdventureGame/Items/ItemDataAsset.h"
+#include "AdventureGame/Items/ItemDataList.h"
 
 #include "HotSpot.generated.h"
 
@@ -25,7 +26,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataLoad, AHotSpot *, HotSpot);
  * 
  */
 UCLASS()
-class ADVENTUREGAME_API AHotSpot : public AStaticMeshActor, public IVerbInteractions
+class ADVENTUREGAME_API AHotSpot : public AStaticMeshActor, public IVerbInteractions, public IAdventureControllerProvider
 {
 	GENERATED_BODY()
 
@@ -83,6 +84,7 @@ public:
 	/// This should be an <b>instance</b> of the <code>ItemDataAsset</code> sub-class, not the
 	/// class itself. Right-click in the content drawer, and choose <i>Miscellaneous > Data Asset</i>
 	/// then choose one of the <code>ItemDataAsset</code> sub-classes to create an instance.
+	/// @deprecated Use OnItemActivated instead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
 	TSoftObjectPtr<UItemDataAsset> OnUseSuccessItem;
 
@@ -90,14 +92,26 @@ public:
 	/// This should be an <b>instance</b> of the <code>ItemDataAsset</code> sub-class, not the
 	/// class itself. Right-click in the content drawer, and choose <i>Miscellaneous > Data Asset</i>
 	/// then choose one of the <code>ItemDataAsset</code> sub-classes to create an instance.
+	/// @deprecated Use OnItemActivated instead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
 	TSoftObjectPtr<UItemDataAsset> OnGiveSuccessItem;
+	
+	/// Data Asset for determining results of successfully activating this Hotspot. This should be
+	/// an <b>instance</b> of the <code>ItemDataAsset</code> sub-class, not the
+	/// class itself. Right-click in the content drawer, and choose <i>Miscellaneous > Data Asset</i>
+	/// then choose one of the <code>ItemDataAsset</code> sub-classes to create an instance.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
+	FItemDataList OnItemActivated;
 
+private:
+	UItemDataAsset* ItemDataAssetForAction(EVerbType Verb) const;
+	
 	//////////////////////////////////
 	///
 	/// USER INPUT EVENTS
 	///
 
+public:
 	UFUNCTION(BlueprintCallable, Category = "HotSpot")
 	void OnBeginCursorOver(AActor *TouchedActor);
 
@@ -193,10 +207,4 @@ protected:
 	
 	bool HotSpotHidden = false;
 	bool Pickup = false;
-
-	/// Internal convenience function. Do not expose to blueprints, they should use
-	/// AdvBlueprintFunctionLibrary::Bark() instead.
-	void Bark(const FText &Text) const;
-
-	void BarkAndEnd(const FText &Text) const;
 };

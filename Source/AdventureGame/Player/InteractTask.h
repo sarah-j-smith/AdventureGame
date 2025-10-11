@@ -40,7 +40,14 @@ public:
 	}
 
 	virtual void Activate() override;
+
+	/// Set to the Interaction that was performed after <code>Activate()</code> is called.
+	/// Only useful for functional tests.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="TestingOnly")
+	EInteractionType InteractionWasCompleted = EInteractionType::None;
+
 private:
+	UPROPERTY()
 	const UObject *WorldContextObject;
 	EInteractionType Interaction;
 	EInteractTimeDirection TimeDirection;

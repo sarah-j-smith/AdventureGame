@@ -27,6 +27,7 @@
 #define G_VERB_SUBJECT_KEY "Verb_subject"
 #define G_USE_SUBJECT_ON_OBJECT_KEY "Use_subject_on_object"
 #define G_GIVE_SUBJECT_TO_OBJECT_KEY "Give_subject_to_object"
+#define G_SCORE_TEMPLATE_KEY "Score"
 
 #define SAVE_GAME_NAME "AdventureGame_SaveGameFile"
 

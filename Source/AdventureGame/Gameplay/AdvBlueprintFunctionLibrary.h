@@ -33,6 +33,9 @@ class ADVENTUREGAME_API UAdvBlueprintFunctionLibrary : public UBlueprintFunction
     GENERATED_BODY()
 
 public:
+    UFUNCTION(BlueprintCallable, Category = "Gameplay", meta = (WorldContext = "WorldContextObject"))
+    static void AddToScore(const UObject* WorldContextObject, int32 ScoreIncrement);
+    
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controllers",
         meta = (WorldContext = "WorldContextObject"))
     static AAdventurePlayerController* GetAdventureController(const UObject* WorldContextObject);
@@ -98,6 +101,7 @@ public:
     /**
      * Check based on distance of the <code>AdventureCharacter</code> from the
      * <code>HotSpot</code> if they are <i>close</i> or not, within the given tolerance.
+     * Note that the Z value of HotSpot and Character position are ignored.
      * @param HotSpot Actor in the level to check against.
      * @param AdventureCharacter Character to check the distance of.
      * @param Tolerance Fudge factor to apply, if the distance is less than this, the character is close. Defaults to 5.0f.
@@ -110,6 +114,7 @@ public:
     /**
      * Check based on distance of the <code>AdventureCharacter</code> from the
      * <code>Location</code> if they are close or not, within the given tolerance.
+     * Note that the Z value of Location and Character is ignored.
      * @param Location Vector position in world space in the level to check against.
      * @param AdventureCharacter Character to check the distance of.
      * @param Tolerance Fudge factor to apply, if the distance is less than this, the character is close. Defaults to 5.0f.
@@ -118,4 +123,15 @@ public:
     UFUNCTION(BLueprintCallable, Category = "Testing", BlueprintPure)
     static bool IsCharacterCloseToLocation(FVector Location, AAdventureCharacter* AdventureCharacter,
         float Tolerance = 5.0f);
+    
+    /**
+     * Get the distance of the <code>AdventureCharacter</code> from the
+     * <code>Location</code> ignoring the Z value. If the <code>AdventureCharacter</code>
+     * is null, or its capsule is at 0, 0, 0 it is an error.
+     * @param Location Vector position in world space in the level to check against.
+     * @param AdventureCharacter Character to check the distance of.
+     * @return float value of the distance, or infinity if character is nullptr or at 
+     */
+    UFUNCTION(BLueprintCallable, Category = "Testing", BlueprintPure)
+    static float GetCharacterDistanceToLocation(FVector Location, AAdventureCharacter* AdventureCharacter);
 };
