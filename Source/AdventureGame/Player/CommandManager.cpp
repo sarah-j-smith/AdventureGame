@@ -49,6 +49,10 @@ void ACommandManager::BeginPlay()
     {
         ConnectToMoveCompletedDelegate(AIController);
     }
+    else
+    {
+        UE_LOG(LogAdventureGame, Error, TEXT("%hs - %hs: AAdventureAIController is null"), __FILE__, __FUNCTION__);
+    }
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
@@ -436,6 +440,18 @@ void ACommandManager::WalkToHotSpot(AHotSpot* HotSpot)
     }
 }
 
+void ACommandManager::CommenceConversation()
+{
+    SetInputLocked(true);
+    InteractionNotifier->PromptListOpenRequest.Broadcast();
+}
+
+void ACommandManager::EndConversation()
+{
+    SetInputLocked(false);
+    InteractionNotifier->PromptListCloseRequest.Broadcast();
+}
+
 void ACommandManager::AssignVerb(EVerbType NewVerb)
 {
     if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
@@ -553,7 +569,7 @@ AAdventureAIController* ACommandManager::GetAIController()
     return nullptr;
 }
 
-void ACommandManager::UpdateMouseOverUI(bool NewMouseIsOverUI)
+void ACommandManager::UpdateMouseOverUI(const bool NewMouseIsOverUI)
 {
     if (NewMouseIsOverUI)
     {

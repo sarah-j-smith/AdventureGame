@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AdventureGame/Items/ItemManagerProvider.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
@@ -19,7 +20,7 @@ DECLARE_DYNAMIC_DELEGATE(FItemSlotDelegate);
  * 
  */
 UCLASS()
-class ADVENTUREGAME_API UItemSlot : public UUserWidget
+class ADVENTUREGAME_API UItemSlot : public UUserWidget, public IItemManagerProvider
 {
 	GENERATED_BODY()
 public:

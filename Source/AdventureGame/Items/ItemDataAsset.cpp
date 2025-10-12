@@ -8,46 +8,48 @@
 #include "../Constants.h"
 #include "../Player/AdventurePlayerController.h"
 #include "AdventureGame/HotSpots/Door.h"
+#include "AdventureGame/Player/ItemManager.h"
 
 
 void UItemDataAsset::OnItemGiveSuccess_Implementation()
 {
-    AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
-    check(AdventurePlayerController);
-    AdventurePlayerController->ItemRemoveFromInventory(SourceItem);
+    if (UItemManager *ItemManager = GetItemManager())
+    {
+        ItemManager->ItemRemoveFromInventory(SourceItem);
+    }
     StartTimer();
 }
 
 void UItemDataAsset::OnItemUseSuccess_Implementation()
 {
-    AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
-    check(AdventurePlayerController);
+    UItemManager *ItemManager = GetItemManager();
+    const ACommandManager *CommandManager = GetCommandManager();
+    if (!ItemManager || !CommandManager) return;
     bool Success = true;
-    UInventoryItem* NewItem;
     switch (SourceItemAssetType)
     {
     case EItemAssetType::Consumable:
-        AdventurePlayerController->ItemRemoveFromInventory(SourceItem);
+        ItemManager->ItemRemoveFromInventory(SourceItem);
         break;
     case EItemAssetType::Tool:
-        NewItem = AdventurePlayerController->ItemAddToInventory(ToolResultItem);
+       ItemManager->ItemAddToInventory(ToolResultItem);
         break;
     case EItemAssetType::Key:
-        if (AHotSpot* ThisHotSpot = AdventurePlayerController->CurrentHotSpot)
+        if (AHotSpot* ThisHotSpot = CommandManager->CurrentHotSpot)
         {
             if (ADoor* Door = Cast<ADoor>(ThisHotSpot))
             {
                 Success = Door->UnlockDoor();
                 if (!Success && Door->DoorState != EDoorState::Locked)
                 {
-                    AdventurePlayerController->PlayerBark(LOCTABLE(ITEM_STRINGS_KEY, "AlreadyUnlocked"));
+                    Bark(LOCTABLE(ITEM_STRINGS_KEY, "AlreadyUnlocked"));
                 }
             }
         }
-        else if (CanUnlockDoorOrItem(AdventurePlayerController->TargetItem->DoorState))
+        else if (CanUnlockDoorOrItem(ItemManager->TargetItem->DoorState))
         {
             Success = true;
-            AdventurePlayerController->TargetItem->DoorState = EDoorState::Closed;
+            ItemManager->TargetItem->DoorState = EDoorState::Closed;
         }
         break;
     default:
@@ -57,47 +59,39 @@ void UItemDataAsset::OnItemUseSuccess_Implementation()
     switch (TargetItemAssetType)
     {
     case EItemAssetType::Consumable:
-        AdventurePlayerController->ItemRemoveFromInventory(TargetItem);
+        ItemManager->ItemRemoveFromInventory(TargetItem);
         break;
     default:
         break;
     }
-    AdventurePlayerController->PlayerBark(Success ? UseSuccessBarkText : UseFailureBarkText);
-    AdventurePlayerController->ShouldInterruptCurrentActionOnNextTick = true;
+    BarkAndEnd(Success ? UseSuccessBarkText : UseFailureBarkText);
 }
 
 void UItemDataAsset::OnItemGiveFailure_Implementation()
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
-    {
-        AdventurePlayerController->PlayerBark(GiveFailureBarkText);
-    }
+    BarkAndEnd(GiveFailureBarkText);
 }
 
 void UItemDataAsset::OnItemUseFailure_Implementation()
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
-    {
-        AdventurePlayerController->PlayerBark(UseFailureBarkText);
-    }
+    BarkAndEnd(UseFailureBarkText);
 }
 
 void UItemDataAsset::OnInteractionTimeout()
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
+    if (ACommandManager *CommandManager = GetCommandManager())
     {
-        AdventurePlayerController->InterruptCurrentAction();
+        CommandManager->InterruptCurrentAction();
     }
 }
 
 void UItemDataAsset::StartTimer()
 {
     if (TimerRunning) return;
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
+    if (ACommandManager *CommandManager = GetCommandManager())
     {
-        AdventurePlayerController->InterruptCurrentAction();
         TimerRunning = true;
-        AdventurePlayerController->GetWorldTimerManager().SetTimer(
+        GetWorld()->GetTimerManager().SetTimer(
             ActionHighlightTimerHandle, this,
             &UItemDataAsset::OnInteractionTimeout,
             InteractionTimeout, false);

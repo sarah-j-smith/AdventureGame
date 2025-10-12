@@ -10,6 +10,7 @@
 #include "AdventureGame/Constants.h"
 #include "AdventureGame/HotSpots/HotSpot.h"
 #include "AdventureGame/Player/AdventureCharacter.h"
+#include "AdventureGame/Player/ItemManager.h"
 
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -38,6 +39,34 @@ AAdventurePlayerController* UAdvBlueprintFunctionLibrary::GetAdventureController
     return nullptr;
 }
 
+ACommandManager* UAdvBlueprintFunctionLibrary::GetCommandManager(const UObject* WorldContextObject)
+{
+    AActor* Actor = UGameplayStatics::GetActorOfClass(WorldContextObject, ACommandManager::StaticClass());
+    if (ACommandManager* CommandManager = Cast<ACommandManager>(Actor))
+    {
+        return CommandManager;
+    }
+    // Could happen if the level is being torn down or a loading of a save game is in progress
+    UE_LOG(LogAdventureGame, Warning, TEXT("%hs - %s Command manager not available in"),
+        __FUNCTION__, *(WorldContextObject->GetName()));
+    return nullptr;
+}
+
+UItemManager* UAdvBlueprintFunctionLibrary::GetItemManager(const UObject* WorldContextObject)
+{
+    if (const ACommandManager *CommandManager = GetCommandManager(WorldContextObject))
+    {
+        if (UItemManager *ItemManager = CommandManager->ItemManager)
+        {
+            return ItemManager;
+        }
+        // Could happen if the level is being torn down or a loading of a save game is in progress
+        UE_LOG(LogAdventureGame, Warning, TEXT("%hs - %s Item Manager not available in"),
+            __FUNCTION__, *(WorldContextObject->GetName()));
+    }
+    return nullptr;
+}
+
 void UAdvBlueprintFunctionLibrary::PlayerBark(const UObject* WorldContextObject, FText BarkText)
 {
     if (AAdventurePlayerController* AdventurePlayerController = GetAdventureController(WorldContextObject))
@@ -48,9 +77,9 @@ void UAdvBlueprintFunctionLibrary::PlayerBark(const UObject* WorldContextObject,
 
 void UAdvBlueprintFunctionLibrary::ClearVerb(const UObject* WorldContextObject)
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventureController(WorldContextObject))
+    if (ACommandManager *CommandManager = GetCommandManager(WorldContextObject))
     {
-        AdventurePlayerController->InterruptCurrentAction();
+        CommandManager->InterruptCurrentAction();
     }
 }
 
@@ -72,21 +101,20 @@ int32 UAdvBlueprintFunctionLibrary::PIEInstance(const UObject* WorldContextObjec
 }
 
 UInventoryItem* UAdvBlueprintFunctionLibrary::AddToInventory(const UObject* WorldContextObject,
-                                                             EItemKind ItemToAdd)
+                                                             const EItemKind ItemToAdd)
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventureController(WorldContextObject))
+    if (UItemManager *ItemManager = GetItemManager(WorldContextObject))
     {
-        UInventoryItem* Item = AdventurePlayerController->ItemAddToInventory(ItemToAdd);
-        return Item;
+        return ItemManager->ItemAddToInventory(ItemToAdd);
     }
     return nullptr;
 }
 
 void UAdvBlueprintFunctionLibrary::RemoveFromInventory(const UObject* WorldContextObject, EItemKind ItemToRemove)
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventureController(WorldContextObject))
+    if (UItemManager *ItemManager = GetItemManager(WorldContextObject))
     {
-        AdventurePlayerController->ItemRemoveFromInventory(ItemToRemove);
+        ItemManager->ItemRemoveFromInventory(ItemToRemove);
     }
 }
 

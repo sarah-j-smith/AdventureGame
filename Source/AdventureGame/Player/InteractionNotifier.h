@@ -7,6 +7,8 @@
 #include "InteractionNotifier.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FUserInteraction);
+DECLARE_MULTICAST_DELEGATE(FPromptListOpenRequest);
+DECLARE_MULTICAST_DELEGATE(FPromptListCloseRequest);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class ADVENTUREGAME_API UInteractionNotifier : public UActorComponent
@@ -21,6 +23,14 @@ public:
     /// 
     /// Event that indicates the user clicked or tapped in the game area.
     FUserInteraction UserInteraction;
+
+    /// Subscribe to this event to be alerted when the user has started a
+    /// conversation and the list of prompts should be displayed.
+    FPromptListOpenRequest PromptListOpenRequest;
+
+    /// Subscribe to this event to be alerted when the user has finished a
+    /// conversation and the list of prompts should be hidden.
+    FPromptListCloseRequest PromptListCloseRequest;
 
     void NotifyUserInteraction();
 

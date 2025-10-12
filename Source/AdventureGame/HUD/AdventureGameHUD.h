@@ -9,6 +9,7 @@
 #include "VerbsUI.h"
 #include "AdventureGame/Dialog/BarkText.h"
 #include "AdventureGame/Enums/SaveGameStatus.h"
+#include "AdventureGame/Items/ItemManagerProvider.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Components/Image.h"
@@ -23,7 +24,7 @@ class AAdventurePlayerController;
  * 
  */
 UCLASS()
-class ADVENTUREGAME_API UAdventureGameHUD : public UUserWidget
+class ADVENTUREGAME_API UAdventureGameHUD : public UUserWidget, public IItemManagerProvider
 {
 	GENERATED_BODY()
 public:
@@ -82,8 +83,10 @@ public:
 
 	void SetInventoryText();
 
+	UFUNCTION(BlueprintCallable)
 	void ShowPromptList();
 
+	UFUNCTION(BlueprintCallable)
 	void HidePromptList();
 
 	void AddBarkText(const FText &BarkText, USphereComponent *Position,
@@ -98,8 +101,4 @@ private:
 
 	UPROPERTY()
 	UWidget *DefaultWidget = nullptr;
-	
-	TWeakObjectPtr<AAdventureCharacter> PlayerCharacter;
-
-	TWeakObjectPtr<AAdventurePlayerController> AdventurePlayerController;
 };

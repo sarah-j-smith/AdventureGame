@@ -3,30 +3,35 @@
 
 #include "AdventureGameHUD.h"
 
-#include "../Constants.h"
-#include "../AdventureGame.h"
-#include "../Player/AdventureCharacter.h"
-#include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/Constants.h"
+#include "AdventureGame/AdventureGame.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "AdvGameUtils.h"
+#include "AdventureGame/HotSpots/HotSpot.h"
+
+#include "AdventureGame/Player/ItemManager.h"
+#include "AdventureGame/Player/InteractionNotifier.h"
+#include "AdventureGame/Player/CommandManager.h"
+#include "Internationalization/StringTableRegistry.h"
 
 void UAdventureGameHUD::NativeOnInitialized()
 {
-    PlayerCharacter = GetOwningPlayerPawn<AAdventureCharacter>();
-
-    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (AAdventurePlayerController* Apc = Cast<AAdventurePlayerController>(PlayerController))
+    if (ACommandManager *Command = GetCommandManager())
     {
-        Apc->BeginActionDelegate.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
-        Apc->UpdateInteractionTextDelegate.AddUObject(
-            this, &UAdventureGameHUD::UpdateInteractionTextEvent);
-        Apc->InterruptActionDelegate.AddUObject(this, &UAdventureGameHUD::InterruptActionEvent);
-        Apc->UpdateInventoryTextDelegate.AddUObject(
-            this, &UAdventureGameHUD::UpdateInventoryTextEvent);
-        Apc->UserInteraction.AddUObject(this, &UAdventureGameHUD::OnUserInteracted);
-        Apc->UpdateSaveGameIndicator.AddUObject(this, &UAdventureGameHUD::UpdateSaveGameIndicatorEvent);
-        AdventurePlayerController = Apc;
+        Command->BeginAction.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
+        Command->UpdateInteractionTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInteractionTextEvent);
+        Command->InterruptAction.AddUObject(this, &UAdventureGameHUD::InterruptActionEvent);
+        if (UInteractionNotifier *Notifier = Command->InteractionNotifier)
+        {
+            Notifier->UserInteraction.AddUObject(this, &UAdventureGameHUD::OnUserInteracted);
+            Notifier->PromptListOpenRequest.AddUObject(this, &UAdventureGameHUD::ShowPromptList);
+            Notifier->PromptListCloseRequest.AddUObject(this, &UAdventureGameHUD::HidePromptList);
+        }
+    }
+    if (UItemManager *ItemManager = GetItemManager())
+    {
+        ItemManager->UpdateInventoryTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInventoryTextEvent);
     }
 
     if (UGameplayStatics::GetPlatformName() == "IOS" || UGameplayStatics::GetPlatformName() == "Android")
@@ -49,16 +54,18 @@ void UAdventureGameHUD::HideBlackScreen()
 
 void UAdventureGameHUD::SetInteractionText()
 {
-    if (!AdventurePlayerController.IsValid()) return;
-    auto Verb = AdventurePlayerController->CurrentVerb;
-    const UInventoryItem* SourceItem = AdventurePlayerController->SourceItem;
+    const ACommandManager *Command = GetCommandManager();
+    const UItemManager *ItemManager = GetItemManager();
+    if (!Command || !ItemManager) return;
+    auto Verb = Command->CurrentVerb;
+    const UInventoryItem* SourceItem = ItemManager->SourceItem;
     if ((Verb == EVerbType::GiveItem || Verb == EVerbType::UseItem) && SourceItem == nullptr)
     {
         UE_LOG(LogAdventureGame, Warning, TEXT("Tried to %s with no source item"),
                *VerbGetDescriptiveString(Verb).ToString());
         return;
     }
-    if (auto CurrentHotspot = AdventurePlayerController->CurrentHotSpot)
+    if (AHotSpot *CurrentHotspot = Command->CurrentHotSpot)
     {
         FText InteractionText;
         switch (Verb)
@@ -78,7 +85,7 @@ void UAdventureGameHUD::SetInteractionText()
         }
         InteractionUI->SetText(InteractionText);
         UE_LOG(LogAdventureGame, Log, TEXT("Set interaction text to: %s"), *InteractionText.ToString());
-        if (AdventurePlayerController->ShouldHighlightInteractionText())
+        if (Command->ShouldHighlightInteractionText())
         {
             InteractionUI->HighlightText();
         }
@@ -92,12 +99,14 @@ void UAdventureGameHUD::SetInteractionText()
 
 void UAdventureGameHUD::SetInventoryText()
 {
-    if (!AdventurePlayerController.IsValid()) return;
-    const EVerbType Verb = AdventurePlayerController->CurrentVerb;
+    const ACommandManager *Command = GetCommandManager();
+    const UItemManager *ItemManager = GetItemManager();
+    if (!Command || !ItemManager) return;
+    const EVerbType Verb = Command->CurrentVerb;
     FText InventoryText;
-    const UInventoryItem* SourceItem = AdventurePlayerController->SourceItem;
-    const UInventoryItem* TargetItem = AdventurePlayerController->TargetItem;
-    const AHotSpot* HotSpot = AdventurePlayerController->CurrentHotSpot;
+    const UInventoryItem* SourceItem = ItemManager->SourceItem;
+    const UInventoryItem* TargetItem = ItemManager->TargetItem;
+    const AHotSpot* HotSpot = Command->CurrentHotSpot;
     if (SourceItem == nullptr)
     {
         InteractionUI->ResetText();
@@ -123,7 +132,7 @@ void UAdventureGameHUD::SetInventoryText()
         InventoryText = AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
     }
     InteractionUI->SetText(InventoryText);
-    if (AdventurePlayerController->ShouldHighlightInteractionText())
+    if (Command->ShouldHighlightInteractionText())
     {
         InteractionUI->HighlightText();
     }
@@ -226,7 +235,10 @@ void UAdventureGameHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
     if (!IsMobileTouch)
     {
-        bool MouseIsOverUI = IsHovered();
-        AdventurePlayerController->SetMouseOverUI(MouseIsOverUI);
+        if (ACommandManager *Command = GetCommandManager())
+        {
+            bool MouseIsOverUI = IsHovered();
+            Command->UpdateMouseOverUI(MouseIsOverUI);
+        }
     }
 }

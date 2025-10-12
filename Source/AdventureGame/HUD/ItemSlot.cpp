@@ -5,6 +5,7 @@
 
 #include "../Player/AdventurePlayerController.h"
 #include "../Items/InventoryItem.h"
+#include "AdventureGame/Player/ItemManager.h"
 #include "Kismet/GameplayStatics.h"
 
 void UItemSlot::NativeOnInitialized()
@@ -43,17 +44,16 @@ void UItemSlot::RemoveItem()
 
 void UItemSlot::HandleOnClicked()
 {
-	APlayerController *PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController))
+	if (ACommandManager *Command = GetCommandManager())
 	{
 		if (HasItem)
 		{
-			AdventurePlayerController->HandleInventoryItemClicked(this);
+			Command->HandleInventoryItemClicked(this);
 		}
 		else
 		{
 			// Clicked on an empty slot so cancel whatever it was doing.
-			AdventurePlayerController->InterruptCurrentAction();
+			Command->InterruptCurrentAction();
 		}
 	}
 }
@@ -62,20 +62,18 @@ void UItemSlot::HandleOnHover()
 {
 	if (HasItem)
 	{
-		APlayerController *PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (AAdventurePlayerController *AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController))
+		if (UItemManager *ItemManager = GetItemManager())
 		{
-			AdventurePlayerController->MouseEnterInventoryItem(this);
+			ItemManager->MouseEnterInventoryItem(this);
 		}		
 	}
 }
 
 void UItemSlot::HandleOnUnhover()
 {
-	APlayerController *PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController))
+	if (UItemManager *ItemManager = GetItemManager())
 	{
-		AdventurePlayerController->MouseLeaveInventoryItem();
+		ItemManager->MouseLeaveInventoryItem();
 	}		
 }
 

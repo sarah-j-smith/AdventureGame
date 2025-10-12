@@ -30,67 +30,6 @@ AAdventurePlayerController::AAdventurePlayerController()
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Construct: AAdventurePlayerController"));
 }
 
-void AAdventurePlayerController::MouseEnterHotSpot(AHotSpot* HotSpot)
-{
-    if (CanBrowseHotspot())
-    {
-        CurrentHotSpot = HotSpot;
-        TriggerUpdateInteractionText();
-    }
-}
-
-void AAdventurePlayerController::MouseLeaveHotSpot()
-{
-    if (CanBrowseHotspot() && CurrentHotSpot)
-    {
-        CurrentHotSpot = nullptr;
-        TriggerUpdateInteractionText();
-    }
-}
-
-void AAdventurePlayerController::MouseEnterInventoryItem(UItemSlot* ItemSlot)
-{
-    if (SourceLocked == EChoiceState::Locked && TargetLocked == EChoiceState::Locked) return;
-    if (ItemSlot->HasItem)
-    {
-        if (SourceLocked == EChoiceState::Unlocked)
-        {
-            SourceItem = ItemSlot->InventoryItem;
-        }
-        else
-        {
-            TargetItem = ItemSlot->InventoryItem;
-        }
-        CurrentItemSlot = ItemSlot;
-        TriggerUpdateInventoryText();
-    }
-}
-
-void AAdventurePlayerController::MouseLeaveInventoryItem()
-{
-    if (SourceLocked == EChoiceState::Locked && TargetLocked == EChoiceState::Locked) return;
-    if (SourceLocked == EChoiceState::Unlocked)
-    {
-        SourceItem = nullptr;
-    }
-    else
-    {
-        TargetItem = nullptr;
-    }
-    CurrentItemSlot = nullptr;
-    TriggerUpdateInventoryText();
-}
-
-void AAdventurePlayerController::SetInputLocked(bool bLocked)
-{
-    LockInput = bLocked;
-}
-
-bool AAdventurePlayerController::IsInputLocked() const
-{
-    return LockInput;
-}
-
 void AAdventurePlayerController::BeginPlay()
 {
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT(">>>> BeginPlay: AAdventurePlayerController"));
@@ -109,8 +48,7 @@ void AAdventurePlayerController::BeginPlay()
     UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
     UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
     AdventureGameInstance->OnLoadRoom();
-
-    TriggerUpdateInteractionText();
+    
     APawn* Pawn = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
 
@@ -120,44 +58,35 @@ void AAdventurePlayerController::BeginPlay()
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("<<<< BeginPlay: AAdventurePlayerController"));
 }
 
-void AAdventurePlayerController::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-
-    if (ShouldInterruptCurrentActionOnNextTick && !IsBarking && !AdventureHUDWidget->Bark->IsBarking())
-    {
-        InterruptCurrentAction();
-        ShouldInterruptCurrentActionOnNextTick = false;
-    }
-    if (ShouldCompleteMovementNextTick)
-    {
-        HandleMovementComplete();
-        ShouldCompleteMovementNextTick = false;
-    }
-}
-
-void AAdventurePlayerController::StartUserInteractionTimer()
-{
-    GetWorldTimerManager().SetTimer(UserInteractionBroadcastTimer, this,
-                                    &AAdventurePlayerController::StopUserInteractionTimer, UserInteractionTime, false);
-    bUserInteractionActive = true;
-}
-
-void AAdventurePlayerController::ResetUserInteractionTimer()
-{
-    bUserInteractionActive = false;
-    GetWorldTimerManager().ClearTimer(UserInteractionBroadcastTimer);
-}
-
-void AAdventurePlayerController::StopUserInteractionTimer()
-{
-    bUserInteractionActive = false;
-}
-
 void AAdventurePlayerController::OnSaveGameComplete(const FString& SlotName, const int32 UserIndex, bool Success)
 {
+    Command->SetInputLocked(false);
     UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Saved, Success);
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("SaveGame: Saved - %s"), Success ? TEXT("true") : TEXT("false"));
+}
+
+void AAdventurePlayerController::HandleSaveGame(const FString& GameName)
+{
+    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GetGameInstance());
+    if (!AdventureGameInstance) return;
+    
+    Command->SetInputLocked(true);
+    UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Saving, true);
+    AdventureGameInstance->SaveGame();
+    // Writes out all non-transient properties - so a UPROPERTY that does not have the Transient flag
+    UGameplayStatics::AsyncSaveGameToSlot(AdventureGameInstance->CurrentSaveGame, GameName, 0, SaveGameToSlotDelegate);
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("SaveGame: %s Save commenced"), *GameName);
+}
+
+void AAdventurePlayerController::HandleLoadGame(const FString& GameName)
+{
+    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GetGameInstance());
+    if (!AdventureGameInstance) return;
+
+    Command->SetInputLocked(true);
+    UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Loading, false);
+    UGameplayStatics::AsyncLoadGameFromSlot(GameName, 0, LoadGameFromSlotDelegate);
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("LoadGame: %s Load commenced"), *GameName);
 }
 
 void AAdventurePlayerController::OnLoadGameComplete(const FString& SlotName, const int32, USaveGame* LoadedGame)
@@ -180,31 +109,7 @@ void AAdventurePlayerController::OnLoadGameComplete(const FString& SlotName, con
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("LoadGame: %s Loaded"), *SlotName);
         UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Loaded, true);
     }
-    SetInputLocked(true);
-    TriggerUpdateInteractionText();
-}
-
-void AAdventurePlayerController::HandleSaveGame(const FString& GameName)
-{
-    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GetGameInstance());
-    if (!AdventureGameInstance) return;
-    SetInputLocked(true);
-    UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Saving, true);
-    AdventureGameInstance->SaveGame();
-    // Writes out all non-transient properties - so a UPROPERTY that does not have the Transient flag
-    UGameplayStatics::AsyncSaveGameToSlot(AdventureGameInstance->CurrentSaveGame, GameName, 0, SaveGameToSlotDelegate);
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("SaveGame: %s Save commenced"), *GameName);
-}
-
-void AAdventurePlayerController::HandleLoadGame(const FString& GameName)
-{
-    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GetGameInstance());
-    if (!AdventureGameInstance) return;
-
-    SetInputLocked(true);
-    UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Loading, false);
-    UGameplayStatics::AsyncLoadGameFromSlot(GameName, 0, LoadGameFromSlotDelegate);
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("LoadGame: %s Load commenced"), *GameName);
+    Command->SetInputLocked(false);
 }
 
 void AAdventurePlayerController::SetupHUD()
@@ -216,7 +121,6 @@ void AAdventurePlayerController::SetupHUD()
         AdventureHUDWidget->AddToViewport();
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("     AAdventureGameModeBase::SetupHUD - AddToViewport"));
     }
-    AdventureHUDWidget->VerbsUI->OnVerbChanged.BindDynamic(this, &AAdventurePlayerController::AssignVerb);
     AdventureHUDWidget->Bark->BarkRequestCompleteDelegate.AddUObject(
         this, &AAdventurePlayerController::OnBarkTimerTimeOut);
 }
@@ -229,22 +133,7 @@ void AAdventurePlayerController::SetupAnimationDelegates()
 void AAdventurePlayerController::UpdateMouseOverUI(bool NewMouseIsOverUI)
 {
     this->bIsMouseOverUI = NewMouseIsOverUI;
-    if (NewMouseIsOverUI)
-    {
-        if (CurrentVerb == EVerbType::WalkTo && CurrentCommand == EPlayerCommand::None)
-        {
-            CurrentVerb = EVerbType::LookAt;
-            TriggerUpdateInteractionText();
-        }
-    }
-    else
-    {
-        if (CurrentVerb == EVerbType::LookAt && CurrentCommand == EPlayerCommand::None)
-        {
-            CurrentVerb = EVerbType::WalkTo;
-            TriggerUpdateInteractionText();
-        }
-    }
+    Command->UpdateMouseOverUI(NewMouseIsOverUI);
 }
 
 void AAdventurePlayerController::SetupCommandManager()
@@ -257,9 +146,9 @@ void AAdventurePlayerController::SetupCommandManager()
     }
     else
     {
-        // UE_LOG(LogAdventureGame, Display, TEXT("Spawning %s - none found in scene"), *CommandManagerToSpawn->GetName());
-        // Actor = GetWorld()->SpawnActor(CommandManagerToSpawn);
-        // Command = Cast<ACommandManager>(Actor);
+        UE_LOG(LogAdventureGame, Display, TEXT("Spawning %s - none found in scene"), *CommandManagerToSpawn->GetName());
+        Actor = GetWorld()->SpawnActor(CommandManagerToSpawn);
+        Command = Cast<ACommandManager>(Actor);
     }
     if (Command)
     {
@@ -281,8 +170,7 @@ APawn* AAdventurePlayerController::SetupPuck(AAdventureCharacter* PlayerCharacte
         SpawnLocation,
         FRotator::ZeroRotator);
 
-    Puck->PointAndClickDelegate.AddUObject(this, &AAdventurePlayerController::HandlePointAndClickInput);
-    Puck->TouchInputDelegate.AddUObject(this, &AAdventurePlayerController::HandleTouchInput);
+    Command->AddInputHandlers(Puck);
     return Puck;
 }
 
@@ -294,252 +182,10 @@ void AAdventurePlayerController::SetupAIController(APawn* AttachToPawn)
     check(AdventureAIController);
 
     AdventureAIController->Possess(AttachToPawn);
-    AdventureAIController->MoveCompletedDelegate.AddDynamic(
-        this, &AAdventurePlayerController::HandleAIMovementCompleteNotify);
-}
 
-void AAdventurePlayerController::HandleTouchInput()
-{
-    float LocationX, LocationY;
-    if (const bool bIsCurrentlyPressed = GetTouchPosition(LocationX, LocationY); !bIsCurrentlyPressed ||
-        IsInputLocked()) return;
-
-#if WITH_EDITOR
-    const FString Message = FString::Printf(TEXT("TouchInput x: %f, y: %f"), LocationX, LocationY);
-    GEngine->AddOnScreenDebugMessage(1, 5.0, FColor::Cyan,
-                                     *Message, false, FVector2D(2.0, 2.0));
-    UE_LOG(LogAdventureGame, Display, TEXT("%s"), *Message);
-#endif
-
-    if (LockInput) return;
-    if (!IsValid(PlayerCharacter)) return;
-
-    if (IsBarking) ClearBark(true);
-
-    if (AHotSpot* HotSpot = HotSpotTapped(LocationX, LocationY))
-    {
-        HandleHotSpotClicked(HotSpot);
-    }
-    else
-    {
-        FVector MouseWorldLocation, MouseWorldDirection;
-        DeprojectScreenPositionToWorld(LocationX, LocationY, MouseWorldLocation, MouseWorldDirection);
-
-        const FVector PlayerLocation = PlayerCharacter->GetCapsuleComponent()->GetComponentLocation();
-        MouseWorldLocation.Z = PlayerLocation.Z;
-        HandleLocationClicked(MouseWorldLocation);
-    }
-}
-
-void AAdventurePlayerController::HandlePointAndClickInput()
-{
-    if (!bUserInteractionActive) UserInteraction.Broadcast();
-    StartUserInteractionTimer();
-
-    if (LockInput || bIsMouseOverUI) return;
-    if (!IsValid(PlayerCharacter)) return;
-    if (!Cast<AAdventureAIController>(PlayerCharacter->Controller)) return;
-
-    if (AHotSpot* HotSpot = HotSpotClicked())
-    {
-        SetVerbAndCommandFromHotSpot(HotSpot);
-        HandleHotSpotClicked(HotSpot);
-    }
-    else
-    {
-        float LocationX, LocationY;
-        if (!GetMouseClickPosition(LocationX, LocationY)) return;
-
-#if WITH_EDITOR
-        const FString Message = FString::Printf(TEXT("PointAndClickInput x: %f, y: %f"), LocationX, LocationY);
-        GEngine->AddOnScreenDebugMessage(1, 5.0, FColor::Cyan,
-                                         *Message, false, FVector2D(2.0, 2.0));
-        UE_LOG(LogAdventureGame, Display, TEXT("%s"), *Message);
-#endif
-
-        FVector MouseWorldLocation, MouseWorldDirection;
-        DeprojectScreenPositionToWorld(LocationX, LocationY, MouseWorldLocation, MouseWorldDirection);
-
-        const FVector PlayerLocation = PlayerCharacter->GetCapsuleComponent()->GetComponentLocation();
-        MouseWorldLocation.Z = PlayerLocation.Z;
-        HandleLocationClicked(MouseWorldLocation);
-    }
-}
-
-void AAdventurePlayerController::HandleHotSpotClicked(AHotSpot* HotSpot)
-{
-    if (!IsValid(HotSpot)) return;
-
-#if WITH_EDITOR
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("HandleHotSpotClicked - %s - command: %s"),
-           *HotSpot->ShortDescription.ToString(),
-           *UEnum::GetValueAsString(CurrentCommand));
-#endif
-
-    switch (CurrentCommand)
-    {
-    case EPlayerCommand::InstantActive:
-        InterruptCurrentAction();
-    case EPlayerCommand::None:
-    case EPlayerCommand::Hover:
-        CurrentHotSpot = HotSpot;
-        SourceItem = nullptr;
-        TargetItem = nullptr;
-        PerformInstantAction();
-        break;
-    case EPlayerCommand::VerbPending:
-    case EPlayerCommand::UsePending:
-        CurrentCommand = EPlayerCommand::Active;
-        CurrentHotSpot = HotSpot;
-        ClearSourceItem();
-        ClearTargetItem();
-        TriggerBeginAction();
-        WalkToHotSpot(HotSpot);
-        break;
-    case EPlayerCommand::Targeting:
-        CurrentCommand = EPlayerCommand::Active;
-        CurrentHotSpot = HotSpot;
-        ClearTargetItem();
-        TriggerBeginAction();
-        WalkToHotSpot(HotSpot);
-        break;
-    default:
-        break;
-    }
-}
-
-void AAdventurePlayerController::HandleLocationClicked(const FVector& Location)
-{
-#if WITH_EDITOR
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("HandleLocationClicked - %s - command: %s"), *Location.ToString(),
-           *UEnum::GetValueAsString(CurrentCommand));
-#endif
-    CurrentTargetLocation = Location;
-    switch (CurrentCommand)
-    {
-    case EPlayerCommand::InstantActive:
-        InterruptCurrentAction();
-    case EPlayerCommand::None:
-    case EPlayerCommand::Hover:
-        ClearSourceItem();
-        ClearTargetItem();
-        PerformInstantAction();
-        break;
-    default:
-        break;
-    }
-}
-
-UInventoryItem* AAdventurePlayerController::ItemAddToInventory(const EItemKind& ItemToAdd)
-{
-    if (UItemList* Inventory = GetInventoryItemList())
-    {
-        if (!Inventory->Contains(ItemToAdd))
-        {
-            if (UInventoryItem* Item = Inventory->AddItemToInventory(ItemToAdd))
-            {
-                return Item;
-            }
-        }
-#if WITH_EDITOR
-        else
-        {
-            FString DebugString = FItemKind::GetDescription(ItemToAdd).ToString();
-            UE_LOG(LogAdventureGame, Warning, TEXT("Cannot create %s - already held in inventory"),
-                   *DebugString);
-        }
-#endif
-    }
-    return nullptr;
-}
-
-void AAdventurePlayerController::ItemRemoveFromInventory(const EItemKind& ItemToRemove)
-{
-    if (UItemList* Inventory = GetInventoryItemList())
-    {
-        Inventory->RemoveItemKindFromInventory(ItemToRemove);
-        if (SourceItem && !Inventory->Contains(SourceItem->ItemKind)) ClearSourceItem();
-        if (TargetItem && !Inventory->Contains(TargetItem->ItemKind)) ClearTargetItem();
-    }
-}
-
-void AAdventurePlayerController::ItemsRemoveFromInventory(const TSet<EItemKind>& ItemsToRemove)
-{
-    if (UItemList* Inventory = GetInventoryItemList())
-    {
-        Inventory->RemoveItemKindsFromInventory(ItemsToRemove);
-        if (SourceItem && !Inventory->Contains(SourceItem->ItemKind)) ClearSourceItem();
-        if (TargetItem && !Inventory->Contains(TargetItem->ItemKind)) ClearTargetItem();
-    }
-}
-
-void AAdventurePlayerController::HandleInventoryItemClicked(UItemSlot* ItemSlot)
-{
-    if (!ItemSlot->HasItem)
-    {
-        // clicking an empty inventory slot clears everything out
-        InterruptCurrentAction();
-        return;
-    }
-    CurrentItemSlot = ItemSlot;
-
-#if WITH_EDITOR
-    const FString DebugString = ItemSlot->InventoryItem->Description.ToString();
-    UE_LOG(LogAdventureGame, Warning, TEXT("HandleInventoryItemClicked - %s"), *DebugString);
-#endif
-
-    if (TargetLocked == EChoiceState::Locked && SourceLocked == EChoiceState::Locked)
-    {
-#if WITH_EDITOR
-        UE_LOG(LogAdventureGame, Warning, TEXT("Ignoring further click on %s - source and target are locked"),
-               *DebugString);
-#endif
-        return;
-    }
-
-    // This handler is only called if `HasItem` is true
-    switch (CurrentCommand)
-    {
-    case EPlayerCommand::None:
-    case EPlayerCommand::Hover:
-        SourceItem = ItemSlot->InventoryItem;
-        SourceLocked = EChoiceState::Locked;
-        PerformInstantAction();
-        break;
-    case EPlayerCommand::VerbPending:
-        SourceItem = ItemSlot->InventoryItem;
-        SourceLocked = EChoiceState::Locked;
-        PerformItemAction();
-        break;
-    case EPlayerCommand::UsePending:
-    case EPlayerCommand::GivePending:
-        CurrentVerb = CurrentCommand == EPlayerCommand::GivePending ? EVerbType::GiveItem : EVerbType::UseItem;
-        SourceItem = ItemSlot->InventoryItem;
-        CurrentCommand = EPlayerCommand::Targeting;
-        SourceLocked = EChoiceState::Locked;
-        ClearTargetItem(); // Should be clear already
-        TriggerUpdateInventoryText();
-        break;
-    case EPlayerCommand::Targeting:
-        if (SourceItem == nullptr || SourceLocked == EChoiceState::Unlocked)
-        {
-            UE_LOG(LogAdventureGame, Error, TEXT("Expected SourceItem locked in combine"));
-            return;
-        }
-        if (SourceItem->ItemKind != ItemSlot->InventoryItem->ItemKind)
-        {
-            TargetLocked = EChoiceState::Locked;
-            CurrentCommand = EPlayerCommand::Active;
-            TargetItem = ItemSlot->InventoryItem;
-            PerformItemInteraction();
-        }
-        else
-        {
-            UE_LOG(LogAdventureGame, Warning, TEXT("Cannot target same kind of item"));
-        }
-    default:
-        UE_LOG(LogAdventureGame, Warning, TEXT("Ignoring inventory click"));
-    }
+    // DO NOT CONNECT THE COMMAND MANAGER HERE.
+    // During functional testing the Player Controller is not available, and we need
+    // the Command Manager (an AActor) to discover the AI Controller itself.
 }
 
 bool AAdventurePlayerController::GetMouseClickPosition(float& LocationX, float& LocationY)
@@ -579,7 +225,6 @@ void AAdventurePlayerController::EndTaskAction(EInteractionType InteractionType,
         EndAction.Broadcast(InteractionType, UID, Complete);
     }
     PlayerInteractUID = 0;
-    SetInputLocked(false);
 }
 
 AHotSpot* AAdventurePlayerController::HotSpotClicked()
@@ -613,414 +258,6 @@ AHotSpot* AAdventurePlayerController::HotSpotTapped(float X, float Y)
         return HotSpot;
     }
     return nullptr;
-}
-
-void AAdventurePlayerController::ClearCurrentPath()
-{
-    AController* PlayerController = PlayerCharacter->GetController();
-    if (AAdventureAIController* AIController = Cast<AAdventureAIController>(PlayerController))
-    {
-        AIController->StopMovement();
-    }
-}
-
-void AAdventurePlayerController::WalkToHotSpot(AHotSpot* HotSpot)
-{
-    const UCapsuleComponent* Capsule = PlayerCharacter->GetCapsuleComponent();
-    const FVector PlayerLocation = Capsule->GetComponentLocation();
-
-    FVector HotSpotWalkToLocation = HotSpot->WalkToPosition;
-    HotSpotWalkToLocation.Z = PlayerLocation.Z;
-
-    CurrentHotSpot == nullptr;
-    float Distance = FVector::Distance(HotSpotWalkToLocation, PlayerLocation);
-    if (Distance < Capsule->GetScaledCapsuleRadius())
-    {
-        // Character is there already, or very close to. Teleport to location and carry on.
-        TeleportToLocation(HotSpotWalkToLocation);
-        CurrentHotSpot = HotSpot;
-        return;
-    }
-    WalkToLocation(HotSpotWalkToLocation);
-    switch (AIStatus)
-    {
-    case EAIStatus::Moving:
-    case EAIStatus::AlreadyThere:
-        // Don't set the hotspot unless we know the player can reach it.
-        CurrentHotSpot = HotSpot;
-    default:
-        break;
-    }
-}
-
-void AAdventurePlayerController::WalkToLocation(const FVector& Location)
-{
-    StopAIMovement();
-    if (AIStatus != EAIStatus::Idle) return;
-
-#if WITH_EDITOR
-    if (TeleportInsteadOfWalk)
-    {
-        TeleportToLocation(Location);
-        return;
-    }
-#endif
-
-    AAdventureAIController* AI = Cast<AAdventureAIController>(PlayerCharacter->GetController());
-    AIStatus = EAIStatus::MakingRequest;
-    switch (AI->MoveToLocation(Location, 1.0))
-    {
-    case EPathFollowingRequestResult::Type::Failed:
-        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Path following request -> failed: %f %f"), Location.X, Location.Y);
-        LastPathResult = EAIMoveResult::Fail;
-        break;
-    case EPathFollowingRequestResult::Type::RequestSuccessful:
-        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Path following request -> success: %f %f"), Location.X, Location.Y);
-        LastPathResult = EAIMoveResult::Moving;
-        AIStatus = EAIStatus::Moving;
-        break;
-    case EPathFollowingRequestResult::Type::AlreadyAtGoal:
-        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Path following request -> already there: %f %f"), Location.X,
-               Location.Y);
-        break;
-    }
-}
-
-/**
- * Called by AI Controller to notify that pathing is finished. Can be immediately & synchronously
- * (ie before even processing any of the switch statement in the above function)
- * if the agent/player is already at the location. Or can be after moving there. Schedules
- * `HandleMovementComplete` to be called on the next timer tick.
- */
-void AAdventurePlayerController::HandleAIMovementCompleteNotify(EPathFollowingResult::Type Result)
-{
-    UE_LOG(LogAdventureGame, Warning, TEXT("HandleAIMovementCompleteNotify"));
-    if (Result == EPathFollowingResult::Success)
-    {
-        if (AIStatus == EAIStatus::MakingRequest)
-        {
-            AIStatus = EAIStatus::AlreadyThere;
-        }
-        LastPathResult = EAIMoveResult::Success;
-        ShouldCompleteMovementNextTick = true;
-    }
-    else
-    {
-        if (CurrentHotSpot && (Result == EPathFollowingResult::Blocked || Result == EPathFollowingResult::OffPath))
-        {
-            FVector HotSpotLocation = CurrentHotSpot->WalkToPoint->GetComponentLocation();
-#if WITH_EDITOR
-            const FString Message = FString::Printf(
-                TEXT("Movement blocked to %s - %s - is walk to point on the nav mesh?"),
-                *(CurrentHotSpot->ShortDescription.ToString()), *(HotSpotLocation.ToString()));
-            GEngine->AddOnScreenDebugMessage(1, 5.0, FColor::Cyan,
-                                             *Message, false, FVector2D(2.0, 2.0));
-            UE_LOG(LogAdventureGame, Warning, TEXT("%s"), *Message);
-#endif
-        }
-    }
-}
-
-void AAdventurePlayerController::TeleportToLocation(const FVector& Location)
-{
-    FVector Dest = Location;
-    Dest.Z = PlayerCharacter->GetCapsuleComponent()->GetComponentLocation().Z;
-    PlayerCharacter->TeleportToLocation(Dest);
-    LastPathResult = EAIMoveResult::Success;
-    AIStatus = EAIStatus::AlreadyThere;
-    ShouldCompleteMovementNextTick = true;
-}
-
-void AAdventurePlayerController::SetVerbAndCommandFromHotSpot(AHotSpot* HotSpot)
-{
-    // If the player has not selected a verb, but has clicked on a hotspot, polymorphically
-    // check with the hotspot for a default command that the player might expect, such as "Look"
-    // or "Open" for a closed door, or "Use" for an open door, or "Talk to" for an NPC.
-    if (CurrentCommand != EPlayerCommand::None && CurrentCommand != EPlayerCommand::Hover) return;
-
-    // Player clicked on a hotspot without specifying a verb first.
-    if (CurrentVerb != EVerbType::WalkTo)
-    {
-        // If CurrentCommand is None/Hover then the verb _should be_ the default
-        UE_LOG(LogAdventureGame, Warning, TEXT("HotSpot %s clicked with no command but verb %s unexpectedly set!!"),
-               *HotSpot->ShortDescription.ToString(), *VerbGetDescriptiveString(CurrentVerb).ToString());
-    }
-    CurrentVerb = HotSpot->CheckForDefaultCommand();
-    if (CurrentVerb != EVerbType::WalkTo)
-    {
-        CurrentCommand = CurrentVerb == EVerbType::Use ? EPlayerCommand::UsePending : EPlayerCommand::VerbPending;
-    }
-}
-
-void AAdventurePlayerController::StopAIMovement()
-{
-    AAdventureAIController* AI = Cast<AAdventureAIController>(PlayerCharacter->GetController());
-    if (!IsValid(AI))
-    {
-        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("PlayerCharacter controller expected to be AIController"));
-        return;
-    }
-    if (AIStatus == EAIStatus::Moving)
-    {
-        AI->StopMovement();
-        PlayerCharacter->GetMovementComponent()->StopActiveMovement();
-        AIStatus = EAIStatus::Idle;
-    }
-}
-
-void AAdventurePlayerController::SwapSourceAndTarget()
-{
-    UInventoryItem* TargetItem = this->TargetItem;
-    this->TargetItem = this->SourceItem;
-    this->SourceItem = TargetItem;
-}
-
-void AAdventurePlayerController::HandleMovementComplete()
-{
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("HandleMovementComplete"));
-    AIStatus = EAIStatus::Idle;
-    if (CurrentHotSpot && (LastPathResult == EAIMoveResult::Success))
-    {
-        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("CurrentHotSpot && (LastPathResult == EAIMoveResult::Success)"));
-        PlayerCharacter->SetFacingDirection(CurrentHotSpot->FacingDirection);
-        PlayerCharacter->TeleportToLocation(CurrentHotSpot->WalkToPosition);
-        PerformHotSpotInteraction();
-        return;
-    }
-    InterruptCurrentAction();
-}
-
-void AAdventurePlayerController::AssignVerb(EVerbType NewVerb)
-{
-    ClearBark(true);
-    ClearSourceItem();
-    ClearTargetItem();
-    CurrentVerb = NewVerb;
-    switch (NewVerb)
-    {
-    case EVerbType::Use:
-        CurrentCommand = EPlayerCommand::UsePending;
-        break;
-    case EVerbType::Give:
-        CurrentCommand = EPlayerCommand::GivePending;
-        break;
-    case EVerbType::WalkTo:
-        break;
-    default:
-        CurrentCommand = EPlayerCommand::VerbPending;
-    }
-    TriggerUpdateInteractionText();
-}
-
-void AAdventurePlayerController::PerformItemAction()
-{
-#if WITH_EDITOR
-    const FString DebugString = SourceItem->ShortDescription.ToString();
-    UE_LOG(LogAdventureGame, Warning, TEXT("PerformItemAction %s - %s"),
-           *VerbGetDescriptiveString(CurrentVerb).ToString(), *DebugString);
-#endif
-
-    if (!SourceItem)
-    {
-        return;
-    }
-    CurrentCommand = EPlayerCommand::Active;
-
-    switch (CurrentVerb)
-    {
-    case EVerbType::Give:
-        UInventoryItem::Execute_OnGive(SourceItem);
-        break;
-    case EVerbType::Open:
-        UInventoryItem::Execute_OnOpen(SourceItem);
-        break;
-    case EVerbType::Close:
-        UInventoryItem::Execute_OnClose(SourceItem);
-        break;
-    case EVerbType::PickUp:
-        UInventoryItem::Execute_OnPickUp(SourceItem);
-        break;
-    case EVerbType::LookAt:
-        UInventoryItem::Execute_OnLookAt(SourceItem);
-        break;
-    case EVerbType::TalkTo:
-        UInventoryItem::Execute_OnTalkTo(SourceItem);
-        break;
-    case EVerbType::Use:
-        UInventoryItem::Execute_OnUse(SourceItem);
-        break;
-    case EVerbType::Push:
-        UInventoryItem::Execute_OnPush(SourceItem);
-        break;
-    case EVerbType::Pull:
-        UInventoryItem::Execute_OnPull(SourceItem);
-        break;
-    case EVerbType::WalkTo:
-        UInventoryItem::Execute_OnLookAt(SourceItem);
-        break;
-    default:
-        UE_LOG(LogAdventureGame, Warning, TEXT("Unexpected verb %s in PerformItemAction"),
-               *VerbGetDescriptiveString(CurrentVerb).ToString())
-    }
-    TriggerBeginAction();
-}
-
-void AAdventurePlayerController::PerformInstantAction()
-{
-#if WITH_EDITOR
-    FString DebugString;
-    if (SourceItem) DebugString = SourceItem->ShortDescription.ToString();
-    if (CurrentHotSpot && DebugString.IsEmpty()) DebugString = CurrentHotSpot->ShortDescription.ToString();
-    UE_LOG(LogAdventureGame, Warning, TEXT("PerformInstantAction %s - %s"),
-           *VerbGetDescriptiveString(CurrentVerb).ToString(), *DebugString);
-#endif
-    CurrentCommand = EPlayerCommand::InstantActive;
-    if (SourceItem)
-    {
-        // Clicking on something in your own inventory
-        UInventoryItem::Execute_OnLookAt(SourceItem);
-        TriggerUpdateInventoryText();
-    }
-    else if (CurrentHotSpot)
-    {
-        WalkToHotSpot(CurrentHotSpot);
-        TriggerUpdateInteractionText();
-    }
-    else
-    {
-        WalkToLocation(CurrentTargetLocation);
-        TriggerUpdateInteractionText();
-    }
-    TriggerBeginAction(); // Highlight and lock the text
-}
-
-void AAdventurePlayerController::PerformItemInteraction()
-{
-    if (!TargetItem)
-    {
-        return;
-    }
-    CurrentHotSpot = nullptr;
-    SetInputLocked(true);
-    CurrentCommand = EPlayerCommand::Active;
-    TriggerBeginAction();
-
-    switch (CurrentVerb)
-    {
-    case EVerbType::GiveItem:
-        UInventoryItem::Execute_OnItemGiven(TargetItem);
-        break;
-    case EVerbType::UseItem:
-        UInventoryItem::Execute_OnItemUsed(TargetItem);
-        break;
-    default:
-        UE_LOG(LogAdventureGame, Warning, TEXT("Unexpected interaction verb %s for perform item interaction with %s"),
-               *VerbGetDescriptiveString(CurrentVerb).ToString(), *TargetItem->ShortDescription.ToString());
-    }
-}
-
-void AAdventurePlayerController::TriggerUpdateInventoryText()
-{
-    UpdateInventoryTextDelegate.Broadcast();
-}
-
-UItemList* AAdventurePlayerController::GetInventoryItemList()
-{
-    UGameInstance* GameInstance = GetGameInstance();
-    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
-    if (!AdventureGameInstance)
-    {
-        return nullptr;
-    }
-    return AdventureGameInstance->Inventory;
-}
-
-void AAdventurePlayerController::PerformHotSpotInteraction()
-{
-    UE_LOG(LogAdventureGame, Warning, TEXT("PerformHotSpotInteraction - verb %s for hotspot %s"),
-           *VerbGetDescriptiveString(CurrentVerb).ToString(), *CurrentHotSpot->ShortDescription.ToString());
-    // This `Execute_Verb` pattern will call C++ and Blueprint overrides.
-    // The use of eg CurrentHotSpot->OnClose() does not work as BP's don't do
-    // polymorphism and have to be dispatched in code.
-    check(CurrentHotSpot);
-    switch (CurrentVerb)
-    {
-    case EVerbType::Close:
-        AHotSpot::Execute_OnClose(CurrentHotSpot);
-        break;
-    case EVerbType::Open:
-        AHotSpot::Execute_OnOpen(CurrentHotSpot);
-        break;
-    case EVerbType::Give:
-        AHotSpot::Execute_OnGive(CurrentHotSpot);
-        break;
-    case EVerbType::GiveItem:
-        AHotSpot::Execute_OnItemGiven(CurrentHotSpot);
-        break;
-    case EVerbType::LookAt:
-        AHotSpot::Execute_OnLookAt(CurrentHotSpot);
-        break;
-    case EVerbType::PickUp:
-        AHotSpot::Execute_OnPickUp(CurrentHotSpot);
-        break;
-    case EVerbType::TalkTo:
-        AHotSpot::Execute_OnTalkTo(CurrentHotSpot);
-        break;
-    case EVerbType::Pull:
-        AHotSpot::Execute_OnPull(CurrentHotSpot);
-        break;
-    case EVerbType::Push:
-        AHotSpot::Execute_OnPush(CurrentHotSpot);
-        break;
-    case EVerbType::Use:
-        AHotSpot::Execute_OnUse(CurrentHotSpot);
-        break;
-    case EVerbType::UseItem:
-        AHotSpot::Execute_OnItemUsed(CurrentHotSpot);
-        break;
-    case EVerbType::WalkTo:
-        AHotSpot::Execute_OnWalkTo(CurrentHotSpot);
-    default:
-        break;
-    }
-}
-
-/**
- * Stop any current movement of the player character, unlock and clear the current verb
- * & active hotspot displayed. Run any action bound to the `RunInterruptedActionDelegate`.
- */
-void AAdventurePlayerController::InterruptCurrentAction()
-{
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("InterruptCurrentAction"));
-    SetInputLocked(false);
-
-    if (const AAdventureCharacter* Pc = PlayerCharacter)
-    {
-        Pc->GetMovementComponent()->StopActiveMovement();
-    }
-    CurrentVerb = bIsMouseOverUI ? EVerbType::LookAt : EVerbType::WalkTo;
-    CurrentCommand = EPlayerCommand::None;
-    CurrentHotSpot = nullptr;
-    CurrentItemSlot = nullptr;
-    ClearSourceItem();
-    ClearTargetItem();
-    TriggerInterruptAction();
-    RunInterruptedActionDelegate.ExecuteIfBound();
-}
-
-void AAdventurePlayerController::TriggerBeginAction()
-{
-    BeginActionDelegate.Broadcast();
-}
-
-void AAdventurePlayerController::TriggerInterruptAction()
-{
-    InterruptActionDelegate.Broadcast();
-}
-
-void AAdventurePlayerController::TriggerUpdateInteractionText()
-{
-    UpdateInteractionTextDelegate.Broadcast();
 }
 
 void AAdventurePlayerController::PlayerBark(const FText& BarkText, int32 BarkTaskUid)
@@ -1077,7 +314,6 @@ void AAdventurePlayerController::PlayerClimb(int32 UID, EInteractTimeDirection I
     PlayerClimbUID = UID;
     if (PlayerCharacter->LastNonZeroMovement.X != 0)
     {
-        SetInputLocked(true);
         PlayerCharacter->Climb();
     }
     else
@@ -1092,7 +328,6 @@ void AAdventurePlayerController::PlayerInteract(int32 UID, EInteractTimeDirectio
     PlayerInteractUID = UID;
     if (PlayerCharacter->LastNonZeroMovement.X != 0)
     {
-        SetInputLocked(true);
         PlayerCharacter->Interact();
     }
     else
@@ -1108,7 +343,6 @@ void AAdventurePlayerController::PlayerSit(int32 UID, EInteractTimeDirection Int
     PlayerSitUID = UID;
     if (PlayerCharacter->LastNonZeroMovement.X != 0)
     {
-        SetInputLocked(true);
         UE_LOG(LogAdventureGame, Warning, TEXT("     >>> PlayerSit"));
         PlayerCharacter->Sit();
     }
@@ -1132,7 +366,6 @@ void AAdventurePlayerController::PlayerTurnLeft(int32 UID, EInteractTimeDirectio
         if (InteractDirection == EInteractTimeDirection::Forward)
         {
             // Turn from the front/back to the left
-            SetInputLocked(true);
             PlayerCharacter->TurnLeft(InteractDirection);
         }
         else
@@ -1145,7 +378,6 @@ void AAdventurePlayerController::PlayerTurnLeft(int32 UID, EInteractTimeDirectio
         if (InteractDirection == EInteractTimeDirection::Backward)
         {
             // Turn from the left back to the front
-            SetInputLocked(true);
             PlayerCharacter->TurnLeft(InteractDirection);
         }
         else
@@ -1177,7 +409,6 @@ void AAdventurePlayerController::PlayerTurnRight(int32 UID, EInteractTimeDirecti
         if (InteractDirection == EInteractTimeDirection::Forward)
         {
             // Turn from the front/back to the left
-            SetInputLocked(true);
             PlayerCharacter->TurnRight(InteractDirection);
         }
         else
@@ -1190,7 +421,6 @@ void AAdventurePlayerController::PlayerTurnRight(int32 UID, EInteractTimeDirecti
         if (InteractDirection == EInteractTimeDirection::Backward)
         {
             // Turn from the left back to the front
-            SetInputLocked(true);
             PlayerCharacter->TurnRight(InteractDirection);
         }
         else

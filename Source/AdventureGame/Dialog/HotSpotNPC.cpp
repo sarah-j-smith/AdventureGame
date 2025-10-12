@@ -9,6 +9,7 @@
 #include "../HUD/AdventureGameHUD.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Widgets/SViewport.h"
 
 // Sets default values
 AHotSpotNPC::AHotSpotNPC()
@@ -65,14 +66,12 @@ void AHotSpotNPC::Tick(float DeltaTime)
 void AHotSpotNPC::OnConverseWith_Implementation()
 {
     IDialogInteractable::OnConverseWith_Implementation();
-    APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (AAdventurePlayerController *Apc = Cast<AAdventurePlayerController>(PC); IsValid(Apc))
+    if (ACommandManager *Command = GetCommandManager())
     {
-        Apc->AdventureHUDWidget->ShowPromptList();
-        Apc->SetInputLocked(true);
-        IsConversing = true;
-        DialogComponent->HandleConversations();
+        Command->CommenceConversation();
     }
+    IsConversing = true;
+    DialogComponent->HandleConversations();
 }
 
 void AHotSpotNPC::OnTalkTo_Implementation()
@@ -91,11 +90,9 @@ void AHotSpotNPC::StopConversation()
     UE_LOG(LogTemp, Warning, TEXT("StopConversation - IsConversing: %s"), IsConversing ? TEXT("Yes") : TEXT("No"));
     if (!IsConversing) return;
     UE_LOG(LogTemp, Warning, TEXT("Stopping Conversation"));
-    APlayerController *PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (AAdventurePlayerController *Apc = Cast<AAdventurePlayerController>(PC); IsValid(Apc))
+    if (ACommandManager *Command = GetCommandManager())
     {
-        Apc->AdventureHUDWidget->HidePromptList();
-        Apc->InterruptCurrentAction();
+        Command->EndConversation();
     }
     IsConversing = false;
 }

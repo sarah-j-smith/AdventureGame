@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemManagerProvider.h"
 #include "AdventureGame/Enums/ItemAssetType.h"
 #include "AdventureGame/Enums/ItemKind.h"
 #include "AdventureGame/Enums/VerbType.h"
@@ -20,7 +21,8 @@ class AHotSpot;
  * duplicating it in each item that needs to have the behaviour.
  */
 UCLASS()
-class ADVENTUREGAME_API UItemDataAsset : public UPrimaryDataAsset, public IAdventureControllerProvider
+class ADVENTUREGAME_API UItemDataAsset : public UPrimaryDataAsset,
+		public IAdventureControllerProvider, public IItemManagerProvider
 {
 	GENERATED_BODY()
 public:

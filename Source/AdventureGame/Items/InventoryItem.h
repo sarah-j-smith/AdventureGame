@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "ItemDataAsset.h"
 #include "ItemDataList.h"
+#include "ItemManagerProvider.h"
 #include "../Enums/ItemKind.h"
 #include "../Gameplay/VerbInteractions.h"
 #include "AdventureGame/Enums/DoorState.h"
@@ -21,7 +22,7 @@ class UItemList;
  * The `Item` in our inventory.
  */
 UCLASS(BlueprintType, Blueprintable, EditInlineNew)
-class ADVENTUREGAME_API UInventoryItem : public UObject, public IVerbInteractions, public IAdventureControllerProvider
+class ADVENTUREGAME_API UInventoryItem : public UObject, public IVerbInteractions, public IItemManagerProvider, public IAdventureControllerProvider
 {
     GENERATED_BODY()
 public:

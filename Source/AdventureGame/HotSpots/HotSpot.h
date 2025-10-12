@@ -11,6 +11,7 @@
 #include "Components/SphereComponent.h"
 #include "AdventureGame/Items/ItemDataAsset.h"
 #include "AdventureGame/Items/ItemDataList.h"
+#include "AdventureGame/Items/ItemManagerProvider.h"
 
 #include "HotSpot.generated.h"
 
@@ -26,7 +27,8 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataLoad, AHotSpot *, HotSpot);
  * 
  */
 UCLASS()
-class ADVENTUREGAME_API AHotSpot : public AStaticMeshActor, public IVerbInteractions, public IAdventureControllerProvider
+class ADVENTUREGAME_API AHotSpot : public AStaticMeshActor, public IVerbInteractions,
+		public IItemManagerProvider, public IAdventureControllerProvider
 {
 	GENERATED_BODY()
 

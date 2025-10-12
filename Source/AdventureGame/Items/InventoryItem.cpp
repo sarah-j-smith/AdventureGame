@@ -8,6 +8,7 @@
 
 #include "AdventureGame/Enums/VerbType.h"
 #include "AdventureGame/Player/AdventurePlayerController.h"
+#include "AdventureGame/Player/ItemManager.h"
 
 #include "Internationalization/StringTableRegistry.h"
 
@@ -22,11 +23,8 @@ void UInventoryItem::OnItemUseSuccess_Implementation()
     
     if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::Use))
     {
-        if (AAdventurePlayerController *Apc = GetAdventurePlayerController())
-        {
-            ItemDataAsset->OnItemUseSuccess();
-            return;
-        }
+        ItemDataAsset->OnItemUseSuccess();
+        return;
     }
     OnItemUseFailure();
 }
@@ -40,11 +38,8 @@ void UInventoryItem::OnItemGiveSuccess_Implementation()
 {
     if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::Give))
     {
-        if (AAdventurePlayerController *Apc = GetAdventurePlayerController())
-        {
-            ItemDataAsset->OnItemGiveSuccess();
-            return;
-        }
+        ItemDataAsset->OnItemGiveSuccess();
+        return;
     }
     OnItemGiveFailure();
 }
@@ -145,7 +140,7 @@ void UInventoryItem::OnUse_Implementation()
 {
     UE_LOG(LogAdventureGame, Fatal, TEXT("SHOULD NEVER HAPPEN"
         " - when the player clicks the Use verb and then an item "
-        "the AdventurePlayerController goes into targeting mode, looking for a Hotspot"
+        "the Command Manager goes into targeting mode, looking for a Hotspot"
         " or another Item to use it on."));
 }
 
@@ -161,17 +156,20 @@ void UInventoryItem::OnItemUsed_Implementation()
 
     // **this** InventoryItem is the target and APC->SourceItem is the source of a Use
     // verb. Check that the Source can validly use on this.
-    if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
+    if (UItemManager *ItemManager = GetItemManager())
     {
-        if (AdventurePlayerController->SourceItem->ItemKind == ItemKind)
+        if (ItemManager->SourceItem->ItemKind == ItemKind)
         {
             // Item is used on itself - failure - this should not be necessary,
             // but needed in the case that during game design this item mistakenly
             // has its interactable item set to another with the same item kind.
-            AdventurePlayerController->InterruptCurrentAction();
+            if (ACommandManager *Command = GetCommandManager())
+            {
+                Command->InterruptCurrentAction();
+            }
             OnItemUseFailure();
         }
-        else if (CanInteractWith(AdventurePlayerController->SourceItem))
+        else if (CanInteractWith(ItemManager->SourceItem))
         {
             // This item has interactable item
             OnItemUseSuccess();
@@ -179,22 +177,25 @@ void UInventoryItem::OnItemUsed_Implementation()
         else if (const UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::UseItem))
         {
             // We are the target, the second item clicked
-            const EItemKind SrcKind = AdventurePlayerController->SourceItem->ItemKind;
-            const EItemKind TgtKind = AdventurePlayerController->TargetItem->ItemKind;
+            const EItemKind SrcKind = ItemManager->SourceItem->ItemKind;
+            const EItemKind TgtKind = ItemManager->TargetItem->ItemKind;
             if (ItemDataAsset->SourceItem == SrcKind && ItemDataAsset->TargetItem == TgtKind)
             {
                 OnItemUseSuccess();
             }
             else if (ItemDataAsset->SourceItem == TgtKind && ItemDataAsset->TargetItem == SrcKind && ItemDataAsset->CanSwapSourceAndTarget)
             {
-                AdventurePlayerController->SwapSourceAndTarget();
+                ItemManager->SwapSourceAndTarget();
                 OnItemUseSuccess();
             }
         }
         else
         {
             // Item is not the one that can be used with this
-            AdventurePlayerController->InterruptCurrentAction();
+            if (ACommandManager *Command = GetCommandManager())
+            {
+                Command->InterruptCurrentAction();
+            }
             OnItemUseFailure();
         }
     }
@@ -203,10 +204,7 @@ void UInventoryItem::OnItemUsed_Implementation()
 void UInventoryItem::OnItemGiven_Implementation()
 {
     IVerbInteractions::OnItemGiven_Implementation();
-    if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
-    {
-        // TODO Giving items not yet implemented
-        // AdventurePlayerController->GiveAnItem(ItemKind);
-    }
+    // TODO Giving items not yet implemented
+    // AdventurePlayerController->GiveAnItem(ItemKind);
     BarkAndEnd(LOCTABLE(ITEM_STRINGS_KEY, "ItemGivenDefaultText"));
 }

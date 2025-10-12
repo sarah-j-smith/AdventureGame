@@ -120,6 +120,10 @@ public:
 
     void WalkToHotSpot(AHotSpot* HotSpot);
 
+    void CommenceConversation();
+
+    void EndConversation();
+
     //////////////////////////////////
     ///
     /// INTERRUPT COMMANDS

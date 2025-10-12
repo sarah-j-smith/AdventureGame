@@ -10,6 +10,7 @@
 #include "AdventureGame/Player/AdventurePlayerController.h"
 #include "AdventureGame/Enums/AdventureGameplayTags.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"
+#include "AdventureGame/Player/ItemManager.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -109,17 +110,17 @@ UItemDataAsset* AHotSpot::ItemDataAssetForAction(EVerbType Verb) const
 
 void AHotSpot::OnBeginCursorOver(AActor *TouchedActor)
 {
-	if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
+	if (ACommandManager *Command = GetCommandManager())
 	{
-		AdventurePlayerController->MouseEnterHotSpot(this);
+		Command->MouseEnterHotSpot(this);
 	}
 }
 
 void AHotSpot::OnEndCursorOver(AActor *TouchedActor)
 {
-	if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
+	if (ACommandManager *Command = GetCommandManager())
 	{
-		AdventurePlayerController->MouseLeaveHotSpot();
+		Command->MouseLeaveHotSpot();
 	}
 }
 
@@ -199,19 +200,18 @@ void AHotSpot::OnWalkTo_Implementation()
 {
 	IVerbInteractions::OnWalkTo_Implementation();
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("On walk to"));
-	if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
+	if (const ACommandManager *Command = GetCommandManager())
 	{
-		if (AdventurePlayerController->IsAlreadyAtHotspotClicked())
+		if (Command->IsAlreadyAtHotspotClicked())
 		{
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("Subject"), ShortDescription);
-			AdventurePlayerController->PlayerBark(FText::Format(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkAlreadyAt"), Args));
+			BarkAndEnd(FText::Format(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkAlreadyAt"), Args));
 		}
 		else
 		{
-			AdventurePlayerController->PlayerBark(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkArrived"));;
+			BarkAndEnd(LOCTABLE(ITEM_STRINGS_KEY, "HotSpotWalkArrived"));;
 		}
-		AdventurePlayerController->ShouldInterruptCurrentActionOnNextTick = true;
 	}
 }
 
@@ -220,11 +220,11 @@ void AHotSpot::OnItemUsed_Implementation()
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("On Item Used"));
 	if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::UseItem))
 	{
-		if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
+		if (const UItemManager *ItemManager = GetItemManager())
 		{
 			// Item was used on this hotspot, and the kind of that item matches the
 			// recipe in the ItemDataAsset. 
-			if (AdventurePlayerController->SourceItem->ItemKind == ItemDataAsset->SourceItem)
+			if (ItemManager->SourceItem->ItemKind == ItemDataAsset->SourceItem)
 			{
 				if (IsValid(ItemDataAsset->UseSuccessSound))
 				{
@@ -247,9 +247,9 @@ void AHotSpot::OnItemGiven_Implementation()
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("On Item Given"));
 	if (UItemDataAsset *ItemDataAsset = OnGiveSuccessItem.LoadSynchronous())
 	{
-		if (AAdventurePlayerController *AdventurePlayerController = GetAdventurePlayerController())
+		if (const UItemManager *ItemManager = GetItemManager())
 		{
-			if (AdventurePlayerController->SourceItem->ItemKind == ItemDataAsset->SourceItem)
+			if (ItemManager->SourceItem->ItemKind == ItemDataAsset->SourceItem)
 			{
 				ItemDataAsset->OnItemGiveSuccess();
 				return;

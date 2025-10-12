@@ -3,15 +3,15 @@
 
 #include "AdventureGameInstance.h"
 
-#include "../AdventureGame.h"
-#include "../Player/AdventureCharacter.h"
-#include "../Player/AdventurePlayerController.h"
-#include "../HUD/AdventureGameHUD.h"
-#include "../HUD/AdvGameUtils.h"
-#include "../HotSpots/Door.h"
-#include "../Items/ItemList.h"
 #include "AdventureSave.h"
 #include "AdventureGame/Constants.h"
+#include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/Player/AdventureCharacter.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
+#include "AdventureGame/HUD/AdventureGameHUD.h"
+#include "AdventureGame/HUD/AdvGameUtils.h"
+#include "AdventureGame/HotSpots/Door.h"
+#include "AdventureGame/Items/ItemList.h"
 
 #include "GameFramework/SaveGame.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -157,8 +157,10 @@ void UAdventureGameInstance::SetupRoom()
 		}
 	}
 
-	AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
-	AdventurePlayerController->InterruptCurrentAction();
+	if (ACommandManager *Command = GetCommandManager())
+	{
+		Command->InterruptCurrentAction();
+	}
 }
 
 void UAdventureGameInstance::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -168,8 +170,10 @@ void UAdventureGameInstance::GetOwnedGameplayTags(FGameplayTagContainer& TagCont
 
 void UAdventureGameInstance::StartNewRoom()
 {
-	AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
-	AdventurePlayerController->SetInputLocked(false);
+	if (ACommandManager *Command = GetCommandManager())
+	{
+		Command->SetInputLocked(false);
+	}
 	RoomTransitionPhase = ERoomTransitionPhase::RoomCurrent;
 }
 
@@ -256,10 +260,11 @@ void UAdventureGameInstance::LoadRoom()
 	// This is done when there is a scene, and a player controller, we must blank the screen,
 	// stop player input, and unload that previous level (that unload is done in OnRoomLoaded). 
 	RoomTransitionPhase = ERoomTransitionPhase::LoadNewRoom;
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	AAdventurePlayerController* AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController);
-	AdventurePlayerController->SetInputLocked(true);
-	AdventurePlayerController->InterruptCurrentAction();
+	if (ACommandManager *Command = GetCommandManager())
+	{
+		Command->SetInputLocked(true);
+		Command->InterruptCurrentAction();
+	}
 	GetHUD()->ShowBlackScreen();
 
 	UE_LOG(LogAdventureGame, Display, TEXT("UAdventureGameInstance::LoadRoom - %s"), *CurrentLevelName.ToString());
@@ -342,20 +347,14 @@ void UAdventureGameInstance::LoadDoor(const ADoor* Door)
 	UE_LOG(LogAdventureGame, Display, TEXT("UAdventureGameInstance::LoadDoor: %s"),
 	       *(Cast<ADoor>(Door)->ShortDescription.ToString()));
 	
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	AAdventurePlayerController* AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController);
-	AAdventureCharacter* AdventureCharacter = AdventurePlayerController->PlayerCharacter;
-
-	FVector Location = Door->WalkToPoint->GetComponentLocation();
-	Location.Z = AdventureCharacter->GetCapsuleComponent()->GetComponentLocation().Z;
-	AdventureCharacter->TeleportToLocation(Location);
-	TArray<FName> Sockts = Door->WalkToPoint->GetAllSocketNames();
-	for (FName Sockt : Sockts)
+	if (AAdventureCharacter* AdventureCharacter = GetAdventureCharacter())
 	{
-		UE_LOG(LogAdventureGame, Warning, TEXT("UAdventureGameInstance::LoadDoor - got: %s"), *Sockt.ToString());
+		FVector Location = Door->WalkToPoint->GetComponentLocation();
+		Location.Z = AdventureCharacter->GetCapsuleComponent()->GetComponentLocation().Z;
+		AdventureCharacter->TeleportToLocation(Location);
+		AdventureCharacter->SetFacingDirection(Door->FacingDirection);
+		AdventureCharacter->SetupCamera();
 	}
-	AdventureCharacter->SetFacingDirection(Door->FacingDirection);
-	AdventureCharacter->SetupCamera();
 }
 
 void UAdventureGameInstance::LogSaveGameStatus(USaveGame* SaveGame)

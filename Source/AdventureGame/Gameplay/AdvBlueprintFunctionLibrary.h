@@ -7,6 +7,8 @@
 #include "../Enums/DoorState.h"
 #include "AdvBlueprintFunctionLibrary.generated.h"
 
+class UItemManager;
+class ACommandManager;
 class AAdventureCharacter;
 class AHotSpot;
 class UAdventureGameInstance;
@@ -40,6 +42,12 @@ public:
         meta = (WorldContext = "WorldContextObject"))
     static AAdventurePlayerController* GetAdventureController(const UObject* WorldContextObject);
 
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controllers", meta = (WorldContext = "WorldContextObject"))
+    static ACommandManager* GetCommandManager(const UObject* WorldContextObject);
+    
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controllers", meta = (WorldContext = "WorldContextObject"))
+    static UItemManager* GetItemManager(const UObject* WorldContextObject);
+    
     UFUNCTION(BlueprintCallable, Category = "Player Actions", meta = (WorldContext = "WorldContextObject"))
     static void PlayerBark(const UObject* WorldContextObject, FText BarkText);
 
