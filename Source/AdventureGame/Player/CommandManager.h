@@ -26,7 +26,6 @@ DECLARE_MULTICAST_DELEGATE(FInterruptAction);
 
 class UItemSlot;
 class AHotSpot;
-class FOnVerbChanged;
 
 ///
 /// Delegate class used by the Player Controller to manage commands issued
@@ -181,7 +180,7 @@ public:
         Fail
     };
 
-    void ConnectToMoveCompletedDelegate(AAdventureAIController* AdventureAIController);
+    void ConnectToMoveCompletedDelegate();
 
     /**
      * Called by AI Controller to notify that pathing is finished. Can be immediately & synchronously

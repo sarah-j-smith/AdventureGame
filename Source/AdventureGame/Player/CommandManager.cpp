@@ -16,7 +16,6 @@
 
 #include "GameFramework/PawnMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 void ShowLocationDebug(float LocationX, float LocationY, const FString& LocationMessage)
 {
@@ -45,14 +44,7 @@ void ACommandManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (AAdventureAIController *AIController = GetAIController())
-    {
-        ConnectToMoveCompletedDelegate(AIController);
-    }
-    else
-    {
-        UE_LOG(LogAdventureGame, Error, TEXT("%hs - %hs: AAdventureAIController is null"), __FILE__, __FUNCTION__);
-    }
+    ConnectToMoveCompletedDelegate();
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
@@ -225,7 +217,18 @@ void ACommandManager::MouseEnterHotSpot(AHotSpot* HotSpot)
     if (CanBrowseHotspot())
     {
         CurrentHotSpot = HotSpot;
-        if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
+        if (!bDisableHUDUpdates)
+        {
+            if (UpdateInteractionTextDelegate.IsBound())
+            {
+                UpdateInteractionTextDelegate.Broadcast();
+                UE_LOG(LogAdventureGame, Display, TEXT("Broadcasting to UpdateInteractionTextDelegate"))
+            }
+        }
+        else
+        {
+            UE_LOG(LogAdventureGame, VeryVerbose, TEXT("MouseEnterHotSpot but bDisableHUDUpdates set: ignoring"));
+        }
     }
 }
 
@@ -318,10 +321,13 @@ void ACommandManager::PerformHotSpotInteraction()
     }
 }
 
-void ACommandManager::ConnectToMoveCompletedDelegate(AAdventureAIController* AdventureAIController)
+void ACommandManager::ConnectToMoveCompletedDelegate()
 {
-    AdventureAIController->MoveCompletedDelegate.AddDynamic(
-        this, &ACommandManager::HandleAIMovementCompleteNotify);
+    if (AAdventureAIController *AdventureAIController = GetAIController())
+    {
+        AdventureAIController->MoveCompletedDelegate.AddDynamic(
+            this, &ACommandManager::HandleAIMovementCompleteNotify);
+    }
 }
 
 void ACommandManager::HandleAIMovementCompleteNotify(EPathFollowingResult::Type Result)
@@ -455,7 +461,9 @@ void ACommandManager::EndConversation()
 void ACommandManager::AssignVerb(EVerbType NewVerb)
 {
     if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
+    {
         AdventurePlayerController->ClearBark();
+    }
     ItemManager->ClearSourceItem();
     ItemManager->ClearTargetItem();
     CurrentVerb = NewVerb;
@@ -549,6 +557,10 @@ void ACommandManager::StopAIMovement()
     }
 }
 
+void ACommandManager::ConnectToPlayerHUD(UAdventureGameHUD* AdventureGameHUD)
+{
+}
+
 AAdventureCharacter* ACommandManager::GetPlayerCharacter()
 {
     if (PlayerCharacter) return PlayerCharacter;
@@ -557,12 +569,18 @@ AAdventureCharacter* ACommandManager::GetPlayerCharacter()
 
 AAdventureAIController* ACommandManager::GetAIController()
 {
+    /// IMPORTANT NOTE:
+    ///   In normal game play the AdventurePlayerController (APC) will drive the setup of these
+    ///   handlers in its BeginPlay() function. But in functional tests the APC does not exist.
+    ///   Instead we drag a CommandManager and an AdventureCharacter into the test level, and
+    ///   hook them up manually so that the this->PlayerCharacter is set already. 
     if (const AAdventureCharacter* PlayerCharacter = GetPlayerCharacter())
     {
         AAdventureAIController* AI = Cast<AAdventureAIController>(PlayerCharacter->GetController());
         if (!AI)
         {
-            UE_LOG(LogAdventureGame, Error, TEXT("Player character expected to have AI controller"));
+            UE_LOG(LogAdventureGame, Warning, TEXT("Player character expected to have AI controller - got %s"),
+                *(AI == nullptr ? TEXT("NULL") : AI->GetName()));
         }
         return AI;
     }

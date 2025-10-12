@@ -42,8 +42,10 @@ void AAdventurePlayerController::BeginPlay()
     check(PlayerCharacter);
     SetupAnimationDelegates();
 
-    SetupHUD();
     SetupCommandManager();
+    SetupHUD();
+    Command->AddVerbHandler(AdventureHUDWidget->VerbsUI);
+    AdventureHUDWidget->BindCommandHandlers(Command);
     
     UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
     UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
@@ -51,6 +53,7 @@ void AAdventurePlayerController::BeginPlay()
     
     APawn* Pawn = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
+    Command->ConnectToMoveCompletedDelegate();
 
     SaveGameToSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnSaveGameComplete);
     LoadGameFromSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnLoadGameComplete);
@@ -149,10 +152,6 @@ void AAdventurePlayerController::SetupCommandManager()
         UE_LOG(LogAdventureGame, Display, TEXT("Spawning %s - none found in scene"), *CommandManagerToSpawn->GetName());
         Actor = GetWorld()->SpawnActor(CommandManagerToSpawn);
         Command = Cast<ACommandManager>(Actor);
-    }
-    if (Command)
-    {
-        Command->AddVerbHandler(AdventureHUDWidget->VerbsUI);
     }
 }
 

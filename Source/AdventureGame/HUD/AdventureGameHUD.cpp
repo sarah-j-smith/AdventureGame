@@ -17,29 +17,43 @@
 
 void UAdventureGameHUD::NativeOnInitialized()
 {
-    if (ACommandManager *Command = GetCommandManager())
-    {
-        Command->BeginAction.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
-        Command->UpdateInteractionTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInteractionTextEvent);
-        Command->InterruptAction.AddUObject(this, &UAdventureGameHUD::InterruptActionEvent);
-        if (UInteractionNotifier *Notifier = Command->InteractionNotifier)
-        {
-            Notifier->UserInteraction.AddUObject(this, &UAdventureGameHUD::OnUserInteracted);
-            Notifier->PromptListOpenRequest.AddUObject(this, &UAdventureGameHUD::ShowPromptList);
-            Notifier->PromptListCloseRequest.AddUObject(this, &UAdventureGameHUD::HidePromptList);
-        }
-    }
-    if (UItemManager *ItemManager = GetItemManager())
-    {
-        ItemManager->UpdateInventoryTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInventoryTextEvent);
-    }
-
     if (UGameplayStatics::GetPlatformName() == "IOS" || UGameplayStatics::GetPlatformName() == "Android")
     {
         IsMobileTouch = true;
     }
 
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("UAdventureGameHUD::NativeOnInitialized"));
+}
+
+void UAdventureGameHUD::BindCommandHandlers(ACommandManager *CommandManager)
+{
+    if (CommandManager)
+    {
+        CommandManager->BeginAction.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
+        CommandManager->UpdateInteractionTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInteractionTextEvent);
+        CommandManager->InterruptAction.AddUObject(this, &UAdventureGameHUD::InterruptActionEvent);
+        UE_LOG(LogAdventureGame, Display, TEXT("UAdventureGameHUD::BindCommandHandlers succeeded"));
+        if (UInteractionNotifier *Notifier = CommandManager->InteractionNotifier)
+        {
+            Notifier->UserInteraction.AddUObject(this, &UAdventureGameHUD::OnUserInteracted);
+            Notifier->PromptListOpenRequest.AddUObject(this, &UAdventureGameHUD::ShowPromptList);
+            Notifier->PromptListCloseRequest.AddUObject(this, &UAdventureGameHUD::HidePromptList);
+            UE_LOG(LogAdventureGame, Display, TEXT("UserInteraction & PromptList bind succeeded"));
+        }
+        if (UItemManager *ItemManager = CommandManager->ItemManager)
+        {
+            ItemManager->UpdateInventoryTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInventoryTextEvent);
+            UE_LOG(LogAdventureGame, Display, TEXT("UpdateInventoryTextDelegate bind succeeded"));
+        }
+        else
+        {
+            UE_LOG(LogAdventureGame, Warning, TEXT("Null CommandManager in BindCommandHandlers."))
+        }
+    }
+    else
+    {
+        UE_LOG(LogAdventureGame, Warning, TEXT("Null CommandManager in BindCommandHandlers."))
+    }
 }
 
 void UAdventureGameHUD::ShowBlackScreen()

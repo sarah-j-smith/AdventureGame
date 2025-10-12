@@ -171,5 +171,14 @@ void UVerbsUI::AssignNormalStyles()
 
 void UVerbsUI::SetActiveVerb() const
 {
-	OnVerbChanged.Execute(CurrentVerb);
+	if (OnVerbChanged.IsBound())
+	{
+		const FString BoundName = OnVerbChanged.GetUObject()->GetName();
+		UE_LOG(LogAdventureGame, Display, TEXT("OnVerbChanged - calling %s"), *BoundName);
+		OnVerbChanged.Execute(CurrentVerb);
+	}
+	else
+	{
+		UE_LOG(LogAdventureGame, Error, TEXT("OnVerbChanged is not bound"));
+	}
 }

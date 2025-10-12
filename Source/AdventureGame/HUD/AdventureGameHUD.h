@@ -32,6 +32,8 @@ public:
 	
 	virtual void NativeOnInitialized() override;
 
+	void BindCommandHandlers(ACommandManager *CommandManager);
+
 	/// Bindings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	UInteractionHUD *InteractionUI;
