@@ -133,8 +133,6 @@ public:
 private:
 	UItemList *GetInventoryItemList();
 	
-	AAdventurePlayerController *GetAdventurePlayerController();
-	
 public:
 	/// Handle a mouse click on an item button.
 	bool MaybeHandleInventoryItemClicked(UItemSlot *ItemSlot);

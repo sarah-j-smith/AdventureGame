@@ -115,11 +115,12 @@ void UBarkText::ClearText()
 {
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("ClearText"));
     HideContainer();
+    ClearBarkQueue();
     ClearBarkLineTimer();
     BarkContainer->ClearChildren();
     BarkLines.Empty();
     bWarningShown = false;
-    CurrentUID = -1;
+    CurrentUID = BARK_UID_NONE;
     CurrentBarkLine = 0;
     IsRenderTransitionSet = false;
     IsOneLineAtMinimumSet = false;

@@ -1,5 +1,6 @@
 #include "BarkRequest.h"
 
+#include "PlayerBarkManager.h"
 #include "AdventureGame/AdventureGame.h"
 #include "AdventureGame/Gameplay/AdvBlueprintFunctionLibrary.h"
 #include "AdventureGame/HUD/AdvGameUtils.h"
@@ -27,7 +28,7 @@ FBarkRequest::FBarkRequest(const FText& NewBarkLine, const int32 UID,
 
 FBarkRequest* FBarkRequest::CreatePlayerMultilineRequest(const TArray<FText>& NewBarkLines, float Duration, int32 UID)
 {
-    if (UID == -1)
+    if (UID == BARK_UID_NONE)
     {
         UID = AdvGameUtils::GetUUID();
     }

@@ -44,7 +44,7 @@ FText VerbGetDescriptiveString(EVerbType Verb)
 	case EVerbType::WalkTo:
 		return LOCTABLE(ITEM_DESCRIPTIONS_KEY, "Walk_to");
 	case EVerbType::UseItem:
-		return LOCTABLE(ITEM_DESCRIPTIONS_KEY, "Use");
+		return LOCTABLE(ITEM_DESCRIPTIONS_KEY, "Use_item");
 	case EVerbType::GiveItem:
 		return LOCTABLE(ITEM_DESCRIPTIONS_KEY, "Give");
 	default:

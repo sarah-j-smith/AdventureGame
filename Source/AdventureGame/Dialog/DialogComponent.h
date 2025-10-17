@@ -121,10 +121,10 @@ private:
     UBarkText *Bark = nullptr;
 
     UPROPERTY()
-    AAdventurePlayerController *Apc = nullptr;
-
-    UPROPERTY()
     AHotSpotNPC *NPC = nullptr;
+    
+    UPROPERTY()
+    ACommandManager *Command = nullptr;
 
     FTimerDelegate BarkTimerDelegate;
     FTimerHandle BarkTimerHandle;

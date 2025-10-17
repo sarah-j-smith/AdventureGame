@@ -12,7 +12,6 @@
 #include "AdventureGame/Items/ItemManagerProvider.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Components/Image.h"
 #include "Components/WidgetSwitcher.h"
 #include "AdventureGameHUD.generated.h"
 
@@ -32,7 +31,11 @@ public:
 	
 	virtual void NativeOnInitialized() override;
 
+	static UAdventureGameHUD *Create(APlayerController *PlayerController, TSubclassOf<UAdventureGameHUD> AdventureHUDClass);
+
 	void BindCommandHandlers(ACommandManager *CommandManager);
+
+	void BindInventoryHandlers(UAdventureGameInstance* AdventureGameInstance);
 
 	/// Bindings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))

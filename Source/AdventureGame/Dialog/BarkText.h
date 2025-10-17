@@ -71,6 +71,8 @@ public:
 	void ClearText();
 
 	bool IsBarking() const { return bIsBarking; }
+
+	bool IsPlayerRequest() const { return CurrentBarkRequest && CurrentBarkRequest->IsPlayer(); }
 	
 private:
 		

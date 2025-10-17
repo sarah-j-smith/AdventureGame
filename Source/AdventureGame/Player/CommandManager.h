@@ -4,13 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "AdventureControllerProvider.h"
+#include "BarkProvider.h"
+#include "TestBarkController.h"
+#include "AdventureGame/Dialog/PlayerBarkManager.h"
+#include "AdventureGame/Enums/BarkAction.h"
 #include "AdventureGame/Enums/PlayerCommand.h"
 #include "AdventureGame/Enums/VerbType.h"
+#include "AdventureGame/HUD/AdventureGameHUD.h"
 #include "AdventureGame/Items/ItemManagerProvider.h"
 #include "GameFramework/Actor.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "CommandManager.generated.h"
 
+class UAdventureGameInstance;
 class UAdventureGameHUD;
 class UVerbsUI;
 class AAdventureAIController;
@@ -32,7 +38,7 @@ class AHotSpot;
 /// by the player, and to track the current state of command interactions
 /// such as walk to location, hotspot or use verb on item or hotspot
 UCLASS(BlueprintType, Blueprintable)
-class ADVENTUREGAME_API ACommandManager : public AActor, public IAdventureControllerProvider
+class ADVENTUREGAME_API ACommandManager : public AActor, public IAdventureControllerProvider, public IBarkProvider
 {
     GENERATED_BODY()
 
@@ -61,7 +67,7 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
     UInteractionNotifier* InteractionNotifier;
-    
+
     bool ShouldHighlightInteractionText() const;
 
     //////////////////////////////////
@@ -77,8 +83,8 @@ public:
     void AddInputHandlers(APuck* Puck);
 
     UFUNCTION(BlueprintCallable, Category = "Actions")
-    void AddVerbHandler(UVerbsUI *VerbsUI);
-    
+    void AddUIHandlers(UAdventureGameHUD* AdventureGameHUD);
+
     UFUNCTION(BlueprintCallable, Category = "EventHandlers")
     void HandleTouchInput();
 
@@ -130,11 +136,16 @@ public:
 
     bool ShouldInterruptCurrentActionOnNextTick() const
     {
-        return bShouldInterruptCurrentActionOnNextTick && !bIsPlayerBarking && !bIsNPCBarking;
+        if (const UPlayerBarkManager* PlayerBarkManager = GetBarkController())
+        {
+            return bShouldInterruptCurrentActionOnNextTick && PlayerBarkManager->IsPlayerBarking() !=
+                EBarkAction::NotBarking;
+        }
+        return bShouldInterruptCurrentActionOnNextTick;
     }
 
     void TeleportToLocation(const FVector& Location);
-    
+
     UFUNCTION(BlueprintCallable, Category="Actions")
     void AssignVerb(EVerbType NewVerb);
 
@@ -159,8 +170,8 @@ public:
     /// This value will be automatically filled with the player character present in
     /// the scene, unless it is already set in a blueprint. 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerCharacter")
-    AAdventureCharacter *PlayerCharacter;
-    
+    AAdventureCharacter* PlayerCharacter;
+
     enum class EAIStatus:uint8
     {
         Idle,
@@ -218,8 +229,45 @@ public:
     ///
     ///
 
-    void ConnectToPlayerHUD(UAdventureGameHUD *AdventureGameHUD);
-    
+    void ConnectToPlayerHUD(UAdventureGameHUD* AdventureGameHUD);
+
+    /// HUD that is only used in testing. The HUD is normally owned
+    /// by the Adventure Player Controller.
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD")
+    UAdventureGameHUD* AdventureGameHUD;
+
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<UAdventureGameHUD> AdventureHUDClass;
+
+    /// Create an AdventureGameHUD and attach it to the above property,
+    /// then setup handlers for it. This should never be called in regular
+    /// game play as the setup functions are done by the Player Controller.
+    /// 
+    /// But in tests (where there is no player controller) it might be useful
+    /// to display the HUD to check the tests are working as expected.
+    ///
+    /// Generally showing UI during a test - they should test functionality.
+    /// Tests should be able to run headless and just report "PASS" or "FAIL".
+    /// This <code>SetupHUD()</code> will be called in the Command Manager's
+    /// <code>BeginPlay</code> if the <code>bIsTesting && !bDisableHUD</code>
+    /// boolean flags are set appropriately.
+    UFUNCTION(BlueprintCallable, Category = "Testing")
+    void SetupHUD();
+
+    /// Returns the PlayerBarkManager, unless testing when the TestBarkController
+    /// may be returned instead.
+    UFUNCTION(BlueprintCallable, Category = "Player Bark")
+    UPlayerBarkManager* GetBarkController() const;
+
+private:
+    UPROPERTY()
+    UPlayerBarkManager* PlayerBarkManager;
+
+    /// Track barks in testing
+    UPROPERTY()
+    UTestBarkController* TestBarkController;
+
+public:
     //////////////////////////////////
     ///
     /// COMMAND STATE
@@ -249,7 +297,7 @@ public:
     /// Location that the player is being sent to by a click
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Commands")
     FVector CurrentTargetLocation = FVector::ZeroVector;
-    
+
 
     //////////////////////////////////
     ///
@@ -300,6 +348,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TestingOnly")
     bool bIsTesting = false;
 
+    /// A switch to turn off player barking. Only useful for tests.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TestingOnly")
+    bool bDisablePlayerBarking = false;
+
     /// A switch to turn off forwarding of Enhanced Input events from the <code>APuck</code>
     /// instance to this controller. Only useful for tests.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="TestingOnly")
@@ -325,8 +377,16 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TestingOnly")
     bool bTeleportInsteadOfWalk = false;
 
+    /// If true use a stub to implement <code>Bark</code> and <code>BarkAndEnd</code>.
+    /// The stub simply stores the requested barks for use in tests. If false try to
+    /// use the real bark UI. Only useful in testing.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TestingOnly")
+    bool bUseTestBarkController = false;
+
 private:
     AAdventureCharacter* GetPlayerCharacter();
 
-    AAdventureAIController *GetAIController();
+    AAdventureAIController* GetAIController();
+
+    UAdventureGameInstance* GetAdventureGameInstance();
 };

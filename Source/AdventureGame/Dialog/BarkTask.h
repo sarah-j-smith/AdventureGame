@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AdventureGame/Items/ItemManagerProvider.h"
+#include "AdventureGame/Player/BarkProvider.h"
 
 #include "Kismet/BlueprintAsyncActionBase.h"
 #include "BarkTask.generated.h"
@@ -18,7 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBarkOutputPin);
  * Manage player asynchronous bark from blueprint actions.
  */
 UCLASS()
-class ADVENTUREGAME_API UBarkTask : public UBlueprintAsyncActionBase
+class ADVENTUREGAME_API UBarkTask : public UBlueprintAsyncActionBase, public IItemManagerProvider
 {
     GENERATED_UCLASS_BODY()
 public:

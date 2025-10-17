@@ -3,10 +3,12 @@
 
 #include "ItemDataAsset.h"
 
+#include "ILocalizedAssetTools.h"
 #include "InventoryItem.h"
 #include "ItemList.h"
 #include "../Constants.h"
 #include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/Enums/AdventureGameplayTags.h"
 #include "AdventureGame/HotSpots/Door.h"
 #include "AdventureGame/Player/ItemManager.h"
 
@@ -15,6 +17,7 @@ void UItemDataAsset::OnItemGiveSuccess_Implementation()
 {
     if (UItemManager *ItemManager = GetItemManager())
     {
+        ItemManager->AddToScore(ScoreOnSuccess);
         ItemManager->ItemRemoveFromInventory(SourceItem);
     }
     StartTimer();
@@ -25,38 +28,49 @@ void UItemDataAsset::OnItemUseSuccess_Implementation()
     UItemManager *ItemManager = GetItemManager();
     const ACommandManager *CommandManager = GetCommandManager();
     if (!ItemManager || !CommandManager) return;
+    ItemManager->AddToScore(ScoreOnSuccess);
     bool Success = true;
-    switch (SourceItemAssetType)
+    TSet<EItemAssetType> ItemAssetTypes = AdventureGameplayTags::GetItemAssetTypes(SourceItemTreatmentTags);
+    ItemAssetTypes.Add(SourceItemAssetType);
+    for (const EItemAssetType& ItemAssetType : ItemAssetTypes)
+    {
+        HandleSourceItem(ItemAssetType, Success);
+    }
+
+    TSet<EItemAssetType> TargetItemAssetTypes = AdventureGameplayTags::GetItemAssetTypes(TargetItemTreatmentTags);
+    TargetItemAssetTypes.Add(TargetItemAssetType);
+    for (const EItemAssetType& ItemAssetType : ItemAssetTypes)
+    {
+        HandleTargetItem(ItemAssetType, Success);
+    }
+    BarkAndEnd(Success ? UseSuccessBarkText : UseFailureBarkText);
+}
+
+void UItemDataAsset::HandleSourceItem(const EItemAssetType ItemAssetType, bool &Success)
+{
+    UItemManager *ItemManager = GetItemManager();
+    switch (ItemAssetType)
     {
     case EItemAssetType::Consumable:
         ItemManager->ItemRemoveFromInventory(SourceItem);
         break;
     case EItemAssetType::Tool:
-       ItemManager->ItemAddToInventory(ToolResultItem);
+        ItemManager->ItemAddToInventory(ToolResultItem);
         break;
     case EItemAssetType::Key:
-        if (AHotSpot* ThisHotSpot = CommandManager->CurrentHotSpot)
-        {
-            if (ADoor* Door = Cast<ADoor>(ThisHotSpot))
-            {
-                Success = Door->UnlockDoor();
-                if (!Success && Door->DoorState != EDoorState::Locked)
-                {
-                    Bark(LOCTABLE(ITEM_STRINGS_KEY, "AlreadyUnlocked"));
-                }
-            }
-        }
-        else if (CanUnlockDoorOrItem(ItemManager->TargetItem->DoorState))
-        {
-            Success = true;
-            ItemManager->TargetItem->DoorState = EDoorState::Closed;
-        }
+        HandleKeyCase(Success);
         break;
     default:
+        UE_LOG(LogAdventureGame, Error, TEXT("Item data asset has bad asset type: %s"),
+            *UEnum::GetValueAsString(SourceItemAssetType));
         break;
     }
+}
 
-    switch (TargetItemAssetType)
+void UItemDataAsset::HandleTargetItem(const EItemAssetType ItemAssetType, bool& Success)
+{
+    UItemManager *ItemManager = GetItemManager();
+    switch (ItemAssetType)
     {
     case EItemAssetType::Consumable:
         ItemManager->ItemRemoveFromInventory(TargetItem);
@@ -64,7 +78,28 @@ void UItemDataAsset::OnItemUseSuccess_Implementation()
     default:
         break;
     }
-    BarkAndEnd(Success ? UseSuccessBarkText : UseFailureBarkText);
+}
+
+void UItemDataAsset::HandleKeyCase(bool &Success)
+{
+    const ACommandManager *CommandManager = GetCommandManager();
+    UItemManager *ItemManager = GetItemManager();
+    if (AHotSpot* ThisHotSpot = CommandManager->CurrentHotSpot)
+    {
+        if (ADoor* Door = Cast<ADoor>(ThisHotSpot))
+        {
+            Success = Door->UnlockDoor();
+            if (!Success && Door->DoorState != EDoorState::Locked)
+            {
+                Bark(LOCTABLE(ITEM_STRINGS_KEY, "AlreadyUnlocked"));
+            }
+        }
+    }
+    else if (CanUnlockDoorOrItem(ItemManager->TargetItem->DoorState))
+    {
+        Success = true;
+        ItemManager->TargetItem->DoorState = EDoorState::Closed;
+    }
 }
 
 void UItemDataAsset::OnItemGiveFailure_Implementation()
@@ -101,9 +136,8 @@ void UItemDataAsset::StartTimer()
 void UItemDataAsset::StopTimer()
 {
     if (!TimerRunning) return;
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
     {
         TimerRunning = false;
-        AdventurePlayerController->GetWorldTimerManager().ClearTimer(ActionHighlightTimerHandle);
+        GetWorld()->GetTimerManager().ClearTimer(ActionHighlightTimerHandle);
     }
 }

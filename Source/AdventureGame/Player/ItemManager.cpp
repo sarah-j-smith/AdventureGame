@@ -106,24 +106,18 @@ UItemList* UItemManager::GetInventoryItemList()
     static TWeakObjectPtr<UItemList> CachedItemList;
     if (UItemList *ItemList = CachedItemList.Get()) return ItemList;
 
-    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
+    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
     const UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
     if (!AdventureGameInstance)
     {
         // Could happen if loading of a save game is in progress
-        UE_LOG(LogAdventureGame, Warning, TEXT("Adventure player controller not available in %hs - %d"),
+        UE_LOG(LogAdventureGame, Warning, TEXT("Adventure Game Instance not available in %hs - %d"),
             __FUNCTION__, __LINE__);
         return nullptr;
     }
     UItemList *ItemList = AdventureGameInstance->Inventory;
     CachedItemList = ItemList;
     return ItemList;
-}
-
-AAdventurePlayerController* UItemManager::GetAdventurePlayerController()
-{
-    APlayerController *Controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    return Cast<AAdventurePlayerController>(Controller);
 }
 
 bool UItemManager::MaybeHandleInventoryItemClicked(UItemSlot* ItemSlot)

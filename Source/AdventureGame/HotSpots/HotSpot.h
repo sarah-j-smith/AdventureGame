@@ -28,7 +28,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataLoad, AHotSpot *, HotSpot);
  */
 UCLASS()
 class ADVENTUREGAME_API AHotSpot : public AStaticMeshActor, public IVerbInteractions,
-		public IItemManagerProvider, public IAdventureControllerProvider
+		public IItemManagerProvider, public IBarkProvider
 {
 	GENERATED_BODY()
 

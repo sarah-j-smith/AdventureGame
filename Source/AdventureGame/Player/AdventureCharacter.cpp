@@ -2,11 +2,13 @@
 
 #include "AdventureCharacter.h"
 
-#include "../AdventureGame.h"
-#include "../HUD/AdvGameUtils.h"
-#include "../Enums/WalkDirection.h"
+#include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/HUD/AdvGameUtils.h"
+#include "AdventureGame/Enums/WalkDirection.h"
+#include "FollowCamera.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
@@ -225,19 +227,6 @@ EWalkDirection AAdventureCharacter::GetFacingDirection()
 		return EWalkDirection::Up;
 	}
 	return EWalkDirection::Down;
-}
-
-void AAdventureCharacter::PlayerBark(FText TextToBark)
-{
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (AAdventurePlayerController *Apc = Cast<AAdventurePlayerController>(PlayerController))
-	{
-		// Apc->AdventureHUDWidget->
-	}
-}
-
-void AAdventureCharacter::ClearBark()
-{
 }
 
 void AAdventureCharacter::SetupCamera()

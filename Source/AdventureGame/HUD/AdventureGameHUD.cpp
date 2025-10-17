@@ -8,6 +8,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "AdvGameUtils.h"
+#include "AdventureGame/Gameplay/AdventureGameInstance.h"
 #include "AdventureGame/HotSpots/HotSpot.h"
 
 #include "AdventureGame/Player/ItemManager.h"
@@ -23,6 +24,18 @@ void UAdventureGameHUD::NativeOnInitialized()
     }
 
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("UAdventureGameHUD::NativeOnInitialized"));
+}
+
+UAdventureGameHUD* UAdventureGameHUD::Create(APlayerController *PlayerController, TSubclassOf<UAdventureGameHUD> AdventureHUDClass)
+{
+    check(AdventureHUDClass);
+    UAdventureGameHUD *AdventureHUDWidget = CreateWidget<UAdventureGameHUD>(PlayerController, AdventureHUDClass, TEXT("Adventure HUD"));
+    if (AdventureHUDWidget)
+    {
+        AdventureHUDWidget->AddToViewport();
+        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("     AAdventureGameModeBase::SetupHUD - AddToViewport"));
+    }
+    return AdventureHUDWidget;
 }
 
 void UAdventureGameHUD::BindCommandHandlers(ACommandManager *CommandManager)
@@ -54,6 +67,11 @@ void UAdventureGameHUD::BindCommandHandlers(ACommandManager *CommandManager)
     {
         UE_LOG(LogAdventureGame, Warning, TEXT("Null CommandManager in BindCommandHandlers."))
     }
+}
+
+void UAdventureGameHUD::BindInventoryHandlers(UAdventureGameInstance* AdventureGameInstance)
+{
+    AdventureGameInstance->PlayerInventoryChanged.AddUniqueDynamic(this, &UAdventureGameHUD::HandleInventoryChanged);
 }
 
 void UAdventureGameHUD::ShowBlackScreen()

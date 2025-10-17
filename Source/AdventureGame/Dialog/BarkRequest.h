@@ -6,11 +6,11 @@ class USphereComponent;
 class FBarkRequest
 {
 public:
-    explicit FBarkRequest(const TArray<FText>& NewBarkLines, int32 UID = -1,
+    explicit FBarkRequest(const TArray<FText>& NewBarkLines, int32 UID = BARK_UID_NONE,
                           FColor Color = G_NPC_Default_Text_Colour.ToFColor(true),
                           USphereComponent* Position = nullptr, float Duration = 0.0f, bool IsPlayer = true);
 
-    explicit FBarkRequest(const FText& NewBarkLine, int32 UID = -1,
+    explicit FBarkRequest(const FText& NewBarkLine, int32 UID = BARK_UID_NONE,
                           FColor Color = G_NPC_Default_Text_Colour.ToFColor(true),
                           USphereComponent* Position = nullptr, float Duration = 0.0f, bool IsPlayer = true);
 
@@ -41,10 +41,10 @@ public:
      * @see CreatePlayerMultilineRequest
      * @param NewBarkLine Line of text possibly with newline <code>'\n'</code> characters
      * @param Duration How long to display for, or 0.0 for a time based on length
-     * @param UID Identifier for this request, or leave as -1 to have one assigned
+     * @param UID Identifier for this request, or leave as <code>BARK_UID_NONE</code> ( -1 ) to have one assigned
      * @return Complete request ready to bark
      */
-    static FBarkRequest* CreatePlayerRequest(const FText& NewBarkLine, float Duration = 0.0f, int32 UID = -1);
+    static FBarkRequest* CreatePlayerRequest(const FText& NewBarkLine, float Duration = 0.0f, int32 UID = BARK_UID_NONE);
 
     /**
      * Create a bark text request for the Player. Use this for data table
@@ -55,11 +55,11 @@ public:
      * @see CreatePlayerMultilineRequest
      * @param NewBarkLines Lines of text (must not have newline <code>'\n'</code> characters)
      * @param Duration How long to display for, or 0.0 for a time based on length
-     * @param UID Identifier for this request, or leave as -1 to have one assigned
+     * @param UID Identifier for this request, or leave as <code>BARK_UID_NONE</code> ( -1 ) to have one assigned
      * @return Complete request ready to bark
      */
     static FBarkRequest* CreatePlayerMultilineRequest(const TArray<FText>& NewBarkLines, float Duration = 0.0f,
-                                                      int32 UID = -1);
+                                                      int32 UID = BARK_UID_NONE);
 
     /**
      * Create a bark text request for an NPC. Use this for lines which may have newline
@@ -70,13 +70,13 @@ public:
      * @param Duration How long to display for, or if 0.0 will be set to a time based on length
      * @param Position Position of the NPC via a sphere component reference
      * @param Color Color of bark text, or defaults to NPC color
-     * @param UID Identifier for this request, or leave as -1 to have one assigned
+     * @param UID Identifier for this request, or leave as BARK_UID_NONE to have one assigned
      * @return Complete request ready to bark
      */
     static FBarkRequest* CreateNPCRequest(const FText& NewBarkLine, float Duration,
                                           USphereComponent* Position,
                                           FColor Color = G_NPC_Default_Text_Colour.ToFColor(true),
-                                          int32 UID = -1);
+                                          int32 UID = BARK_UID_NONE);
 
     /**
      * Create a bark text request for the Player. Use this for data table
@@ -87,13 +87,13 @@ public:
      * @param Duration How long to display for, or 0.0 for a time based on length
      * @param Color Color of bark text, or defaults to NPC color
      * @param Position Position of the NPC via a sphere component reference
-     * @param UID Identifier for this request, or leave as -1 to have one assigned
+     * @param UID Identifier for this request, or leave as BARK_UID_NONE to have one assigned
      * @return Complete request ready to bark
      */
     static FBarkRequest* CreateNPCMultilineRequest(const TArray<FText>& NewBarkLines, float Duration = 0.0f,
                                                    USphereComponent* Position = nullptr,
                                                    FColor Color = G_NPC_Default_Text_Colour.ToFColor(true),
-                                                   int32 UID = -1);
+                                                   int32 UID = BARK_UID_NONE);
 
     static void Dump(const FBarkRequest* Request);
 

@@ -31,17 +31,4 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "AdventureController")
     virtual AAdventureCharacter *GetAdventureCharacter();
-
-    /// Player barks a message and then immediately ends any action sequence
-    /// they were doing. Use when the blueprint event logic should end with a bark.
-    /// @param Text FText for the player to bark. Should be translatable.
-    UFUNCTION(BlueprintCallable, Category = "AdventureController")
-    virtual void BarkAndEnd(FText Text);
-
-    /// Player barks a message and continues on any action sequence
-    /// they were doing. Use when the blueprint event logic should continue
-    /// and block user interaction.
-    /// @param Text FText for the player to bark. Should be translatable.
-    UFUNCTION(BlueprintCallable, Category = "AdventureController")
-    virtual void Bark(FText Text);
 };

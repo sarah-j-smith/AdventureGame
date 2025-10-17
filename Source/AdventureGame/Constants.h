@@ -21,6 +21,11 @@
 /// Translations namespace for all UI text not gameplay related
 #define UI_NAMESPACE_KEY "UINamespace"
 
+/// Specify a UID or use this to signify none is specified, and the task will create one.
+#define BARK_UID_NONE -1
+
+/// Specify a PromptIndex or use this to signify the lack of a valid prompt index.
+#define INVALID_PROMPT_INDEX -1
 
 /// See ItemDescriptions.csv - use these in LOCTABLE
 #define G_WALK_TO_KEY "Walk_to"

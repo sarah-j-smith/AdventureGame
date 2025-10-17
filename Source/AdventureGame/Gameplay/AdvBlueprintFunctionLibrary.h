@@ -37,17 +37,24 @@ class ADVENTUREGAME_API UAdvBlueprintFunctionLibrary : public UBlueprintFunction
 public:
     UFUNCTION(BlueprintCallable, Category = "Gameplay", meta = (WorldContext = "WorldContextObject"))
     static void AddToScore(const UObject* WorldContextObject, int32 ScoreIncrement);
-    
+
+    /// Get the controller used for handling click and touch input, and for playing animations on the character
+    /// This function is a bit slow, so don't use it in a loop.
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controllers",
         meta = (WorldContext = "WorldContextObject"))
     static AAdventurePlayerController* GetAdventureController(const UObject* WorldContextObject);
 
+    /// Get the manager used for handling player commands; verbs and item actions.
+    /// This function is a bit slow, so don't use it in a loop.
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controllers", meta = (WorldContext = "WorldContextObject"))
     static ACommandManager* GetCommandManager(const UObject* WorldContextObject);
     
+    /// Get the manager used for handling items in the inventory
+    /// This function is a bit slow, so don't use it in a loop.
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controllers", meta = (WorldContext = "WorldContextObject"))
     static UItemManager* GetItemManager(const UObject* WorldContextObject);
-    
+
+    /// Get the player to "bark" a message, which prints on screen above their head
     UFUNCTION(BlueprintCallable, Category = "Player Actions", meta = (WorldContext = "WorldContextObject"))
     static void PlayerBark(const UObject* WorldContextObject, FText BarkText);
 

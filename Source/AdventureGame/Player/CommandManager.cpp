@@ -13,6 +13,7 @@
 #include "InteractionNotifier.h"
 #include "ItemManager.h"
 #include "Puck.h"
+#include "TestBarkController.h"
 
 #include "GameFramework/PawnMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -37,6 +38,7 @@ ACommandManager::ACommandManager()
 
     InteractionNotifier = CreateDefaultSubobject<UInteractionNotifier>(TEXT("InteractionNotifier"));
     ItemManager = CreateDefaultSubobject<UItemManager>(TEXT("ItemManager"));
+    PlayerBarkManager = CreateDefaultSubobject<UPlayerBarkManager>(TEXT("PlayerBark"));
 }
 
 // Called when the game starts or when spawned
@@ -45,6 +47,15 @@ void ACommandManager::BeginPlay()
     Super::BeginPlay();
 
     ConnectToMoveCompletedDelegate();
+    if (bIsTesting && !bDisableHUD && AdventureGameHUD == nullptr)
+    {
+        SetupHUD();
+    }
+    if (bIsTesting && bDisablePlayerBarking)
+    {
+        PlayerBarkManager->DestroyComponent();
+        TestBarkController = CreateDefaultSubobject<UTestBarkController>(TEXT("TestBarkController"));
+    }
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
@@ -84,6 +95,8 @@ bool ACommandManager::ShouldHighlightInteractionText() const
 
 void ACommandManager::HandleTouchInput()
 {
+    // Don't test input, start from HandleHotSpotClicked & HandleLocationClicked
+    check(!bIsTesting); 
     InteractionNotifier->NotifyUserInteraction();
 
     if (IsInputLocked()) return;
@@ -94,8 +107,6 @@ void ACommandManager::HandleTouchInput()
     if (!AdventurePlayerController->GetTouchPosition(LocationX, LocationY)) return;
 
     ShowLocationDebug(LocationX, LocationY, TEXT("Touch input"));
-
-    if (bIsPlayerBarking) AdventurePlayerController->ClearBark(true);
 
     if (AHotSpot* HotSpot = AdventurePlayerController->HotSpotTapped(LocationX, LocationY))
     {
@@ -118,6 +129,9 @@ void ACommandManager::HandleTouchInput()
 
 void ACommandManager::HandlePointAndClickInput()
 {
+    // Don't test input, start from HandleHotSpotClicked & HandleLocationClicked
+    check(!bIsTesting);
+    
     InteractionNotifier->NotifyUserInteraction();
 
     AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
@@ -273,7 +287,7 @@ void ACommandManager::PerformInstantAction()
 
 void ACommandManager::PerformHotSpotInteraction()
 {
-    UE_LOG(LogAdventureGame, Warning, TEXT("PerformHotSpotInteraction - verb %s for hotspot %s"),
+    UE_LOG(LogAdventureGame, Verbose, TEXT("PerformHotSpotInteraction - verb %s for hotspot %s"),
            *VerbGetDescriptiveString(CurrentVerb).ToString(), *CurrentHotSpot->ShortDescription.ToString());
     // This `Execute_Verb` pattern will call C++ and Blueprint overrides.
     // The use of eg CurrentHotSpot->OnClose() does not work as BP's don't do
@@ -460,10 +474,6 @@ void ACommandManager::EndConversation()
 
 void ACommandManager::AssignVerb(EVerbType NewVerb)
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController())
-    {
-        AdventurePlayerController->ClearBark();
-    }
     ItemManager->ClearSourceItem();
     ItemManager->ClearTargetItem();
     CurrentVerb = NewVerb;
@@ -559,11 +569,50 @@ void ACommandManager::StopAIMovement()
 
 void ACommandManager::ConnectToPlayerHUD(UAdventureGameHUD* AdventureGameHUD)
 {
+    AdventureGameHUD->BindCommandHandlers(this);
+    AdventureGameHUD->BlackScreen->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void ACommandManager::SetupHUD()
+{
+    /////
+    //// TESTING
+    ////
+    //// THIS FUNCTION IS FOR TESTING ONLY - IT EXISTS TO HELP VISUALISE TEST OUTPUT
+    ///
+    check(bIsTesting);
+    check(!bDisableHUDUpdates);
+    check(!bDisableHUD);
+    APlayerController *PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+    AdventureGameHUD = UAdventureGameHUD::Create(PlayerController, AdventureHUDClass);
+    AdventureGameHUD->AddToViewport();
+    ConnectToPlayerHUD(AdventureGameHUD);
+    if (PlayerBarkManager && IsValid(PlayerBarkManager))
+    {
+        PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
+    }
+    if (UAdventureGameInstance *AdventureGameInstance = GetAdventureGameInstance())
+    {
+        AdventureGameHUD->BindInventoryHandlers(AdventureGameInstance);
+    }
+}
+
+UPlayerBarkManager* ACommandManager::GetBarkController() const
+{
+    if (TestBarkController) return TestBarkController;
+    return PlayerBarkManager;
 }
 
 AAdventureCharacter* ACommandManager::GetPlayerCharacter()
 {
     if (PlayerCharacter) return PlayerCharacter;
+    if (bIsTesting)
+    {
+        ///   In testing we drag a CommandManager and an AdventureCharacter into the test level, and
+        ///   hook them up manually so that the this->PlayerCharacter is set already. 
+        UE_LOG(LogAdventureGame, Error, TEXT("PlayerCharacter is not set during testing!"));
+        return nullptr;
+    }
     return GetAdventureCharacter();
 }
 
@@ -572,8 +621,6 @@ AAdventureAIController* ACommandManager::GetAIController()
     /// IMPORTANT NOTE:
     ///   In normal game play the AdventurePlayerController (APC) will drive the setup of these
     ///   handlers in its BeginPlay() function. But in functional tests the APC does not exist.
-    ///   Instead we drag a CommandManager and an AdventureCharacter into the test level, and
-    ///   hook them up manually so that the this->PlayerCharacter is set already. 
     if (const AAdventureCharacter* PlayerCharacter = GetPlayerCharacter())
     {
         AAdventureAIController* AI = Cast<AAdventureAIController>(PlayerCharacter->GetController());
@@ -584,6 +631,17 @@ AAdventureAIController* ACommandManager::GetAIController()
         }
         return AI;
     }
+    return nullptr;
+}
+
+UAdventureGameInstance* ACommandManager::GetAdventureGameInstance()
+{
+    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(
+    UGameplayStatics::GetGameInstance(this)))
+    {
+        return AdventureGameInstance;
+    }
+    UE_LOG(LogAdventureGame, Warning, TEXT("Could not get Adventure Game Instance"));
     return nullptr;
 }
 
@@ -614,9 +672,10 @@ void ACommandManager::AddInputHandlers(APuck* Puck)
     Puck->TouchInputDelegate.AddUObject(this, &ACommandManager::HandleTouchInput);
 }
 
-void ACommandManager::AddVerbHandler(UVerbsUI *VerbsUI)
+void ACommandManager::AddUIHandlers(UAdventureGameHUD *AdventureGameHUD)
 {
-    if (!bDisableHUD) VerbsUI->OnVerbChanged.BindDynamic(this, &ACommandManager::AssignVerb);
+    if (!bDisableHUD) AdventureGameHUD->VerbsUI->OnVerbChanged.BindDynamic(this, &ACommandManager::AssignVerb);
+    if (!bDisablePlayerBarking) PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
 }
 
 void ACommandManager::HandleInventoryItemClicked(UItemSlot* ItemSlot)
@@ -656,7 +715,7 @@ void ACommandManager::HandleInventoryItemClicked(UItemSlot* ItemSlot)
         {
             ItemManager->SetAndLockTargetItem(ItemSlot->InventoryItem);
             CurrentCommand = EPlayerCommand::Active;
-            ItemManager->PerformItemAction(CurrentVerb);
+            ItemManager->PerformItemInteraction(CurrentVerb);
             if (!bDisableHUDUpdates) BeginAction.Broadcast();
         }
     default:

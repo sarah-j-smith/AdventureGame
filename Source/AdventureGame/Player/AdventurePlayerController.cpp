@@ -44,7 +44,7 @@ void AAdventurePlayerController::BeginPlay()
 
     SetupCommandManager();
     SetupHUD();
-    Command->AddVerbHandler(AdventureHUDWidget->VerbsUI);
+    Command->AddUIHandlers(AdventureHUDWidget);
     AdventureHUDWidget->BindCommandHandlers(Command);
     
     UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
@@ -117,15 +117,7 @@ void AAdventurePlayerController::OnLoadGameComplete(const FString& SlotName, con
 
 void AAdventurePlayerController::SetupHUD()
 {
-    check(AdventureHUDClass);
-    AdventureHUDWidget = CreateWidget<UAdventureGameHUD>(this, AdventureHUDClass);
-    if (AdventureHUDWidget)
-    {
-        AdventureHUDWidget->AddToViewport();
-        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("     AAdventureGameModeBase::SetupHUD - AddToViewport"));
-    }
-    AdventureHUDWidget->Bark->BarkRequestCompleteDelegate.AddUObject(
-        this, &AAdventurePlayerController::OnBarkTimerTimeOut);
+    AdventureHUDWidget = UAdventureGameHUD::Create(this, AdventureHUDClass);
 }
 
 void AAdventurePlayerController::SetupAnimationDelegates()
@@ -257,55 +249,6 @@ AHotSpot* AAdventurePlayerController::HotSpotTapped(float X, float Y)
         return HotSpot;
     }
     return nullptr;
-}
-
-void AAdventurePlayerController::PlayerBark(const FText& BarkText, int32 BarkTaskUid)
-{
-    IsBarking = true;
-    const FBarkRequest* Request = FBarkRequest::CreatePlayerRequest(BarkText);
-    AdventureHUDWidget->Bark->AddBarkRequest(Request);
-    BarkID = Request->GetUID();
-    CurrentBarkTask = BarkTaskUid;
-}
-
-void AAdventurePlayerController::PlayerBarkLines(const TArray<FText>& BarkTextArray, int32 BarkTaskUid)
-{
-    if (BarkTextArray.IsEmpty()) return;
-    IsBarking = true;
-    const FBarkRequest* Request = FBarkRequest::CreatePlayerMultilineRequest(BarkTextArray);
-    AdventureHUDWidget->Bark->AddBarkRequest(Request);
-    BarkID = Request->GetUID();
-    CurrentBarkTask = BarkTaskUid;
-}
-
-void AAdventurePlayerController::OnBarkTimerTimeOut(int32 BarkTask)
-{
-    UE_LOG(LogAdventureGame, Warning, TEXT("OnBarkTimerTimeOut - BarkID: %d -- looking for: %d"), BarkTask, BarkID);
-    if (IsBarking && BarkTask == BarkID)
-    {
-        UE_LOG(LogAdventureGame, Warning, TEXT("OnBarkTimerTimeOut - bIsBarking"));
-        EndBark.Broadcast(CurrentBarkTask);
-        BarkID = 0;
-        CurrentBarkTask = 0;
-        IsBarking = false;
-    }
-}
-
-void AAdventurePlayerController::ClearBark(bool ShouldInterrupt)
-{
-    UE_LOG(LogAdventureGame, Warning, TEXT("ClearBark"));
-    if (IsBarking)
-    {
-        UE_LOG(LogAdventureGame, Warning, TEXT("ClearBark - bIsBarking"));
-        // Timer is still running - do we let callers know the text was interrupted?
-        if (ShouldInterrupt)
-        {
-            UE_LOG(LogAdventureGame, Warning, TEXT("ClearBark - ShouldInterrupt"));
-            EndBark.Broadcast(CurrentBarkTask);
-        }
-        IsBarking = false;
-    }
-    AdventureHUDWidget->Bark->ClearText();
 }
 
 void AAdventurePlayerController::PlayerClimb(int32 UID, EInteractTimeDirection InteractDirection)

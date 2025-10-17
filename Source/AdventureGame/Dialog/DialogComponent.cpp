@@ -244,11 +244,11 @@ void UDialogComponent::InitialiseForBarking()
 {
     NPC = Cast<AHotSpotNPC>(GetOwner());
     check(NPC);
-    Apc = Cast<AAdventurePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-    check(Apc);
-    PromptList = Apc->AdventureHUDWidget->PromptList;
-    Bark = Apc->AdventureHUDWidget->Bark;
-    Apc->ClearBark(true);
+    Command = NPC->GetCommandManager();
+    check(Command);
+    PromptList = Command->AdventureGameHUD->PromptList;
+    Bark = Command->AdventureGameHUD->Bark;
+    Bark->ClearText();
     Bark->BarkRequestCompleteDelegate.AddUObject(this, &UDialogComponent::OnBarkTimerTimeout);
 }
 
@@ -262,8 +262,9 @@ void UDialogComponent::TearDownBarkingSetup()
     {
         PromptList->PromptClickedEvent.RemoveAll(this);
     }
-    BarkUID = -1;
-    Apc = nullptr;
+    NPC = nullptr;
+    BarkUID = BARK_UID_NONE;
+    Command = nullptr;
     Bark = nullptr;
     PromptList = nullptr;
 }

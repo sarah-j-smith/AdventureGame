@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/Constants.h"
 
 #include "PromptData.generated.h"
 
@@ -31,7 +32,9 @@ struct ADVENTUREGAME_API FPromptData: public FTableRowBase
     /**
      * Check if the <code>Index</code> and <code>SubIndex</code> are valid given the
      * <code>PreviousIndex</code> and <code>PreviousSubIndex</code>. If both the previous
-     * values are -1 then this must be the first index, and both tested indices must be zero.
+     * values are INVALID_PROMPT_INDEX ( -1 ) then this must be the first index, and both
+     * tested indices must be zero.
+     * 
      * Otherwise either the Index is strictly greater than the previous, or it is the same,
      * and the SubIndex is strictly greater than the previous. If none of those three cases
      * hold true then they are invalid. An error message is logged if the pair is invalid.
@@ -43,10 +46,10 @@ struct ADVENTUREGAME_API FPromptData: public FTableRowBase
      */
     static bool IsValidNextIndex(int PreviousIndex, int PreviousSubIndex, int Index, int SubIndex)
     {
-        if (PreviousIndex == -1 && PreviousSubIndex == -1 && Index == 0 && SubIndex == 0) return true;
-        if (PreviousIndex == -1 || PreviousSubIndex == -1)
+        if (PreviousIndex == INVALID_PROMPT_INDEX && PreviousSubIndex == INVALID_PROMPT_INDEX && Index == 0 && SubIndex == 0) return true;
+        if (PreviousIndex == INVALID_PROMPT_INDEX || PreviousSubIndex == INVALID_PROMPT_INDEX)
         {
-            // PreviousIndex == -1 || PreviousSubIndex == -1 means this is the first row.
+            // PreviousIndex == INVALID_PROMPT_INDEX || PreviousSubIndex == INVALID_PROMPT_INDEX means this is the first row.
             UE_LOG(LogAdventureGame, Fatal, TEXT("Expect first row index == 0 and sub-index == 0"));
             return false;
         }

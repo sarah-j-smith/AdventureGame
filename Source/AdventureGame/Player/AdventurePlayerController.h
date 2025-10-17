@@ -40,7 +40,6 @@ DECLARE_MULTICAST_DELEGATE(FUpdateSaveGameText);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FUpdateSaveGameIndicator, ESaveGameStatus /* SaveStatus */, bool /* Success */);
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FEndAction, EInteractionType /* Interaction */, int32 /* UID */, bool /* Completed */);
-DECLARE_MULTICAST_DELEGATE_OneParam(FEndBark, int32 /* UID */);
 
 /**
  * 
@@ -52,32 +51,6 @@ class ADVENTUREGAME_API AAdventurePlayerController : public APlayerController
 public:
 
 	AAdventurePlayerController();
-
-	//////////////////////////////////
-	///
-	/// PLAYER BARK
-	///
-	
-	void PlayerBark(const FText &BarkText, int32 BarkTaskUid = 0);
-
-	void PlayerBarkLines(const TArray<FText> &BarkTextArray, int32 BarkTaskUid = 0);
-
-	void ClearBark(bool ShouldInterrupt = false);
-
-	/// This flag is true when the Bark Timer is running, and false otherwise.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool IsBarking = false;
-
-	FEndBark EndBark;
-
-private:
-	int32 CurrentBarkTask;
-	int32 BarkID;
-
-	UFUNCTION()
-	void OnBarkTimerTimeOut(int32 BarkID);
-
-public:
 	
 	//////////////////////////////////
 	///

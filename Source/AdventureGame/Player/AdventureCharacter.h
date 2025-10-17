@@ -7,7 +7,6 @@
 #include "../Dialog/BarkText.h"
 #include "PaperZDCharacter.h"
 #include "PaperZDAnimInstance.h"
-#include "FollowCamera.h"
 #include "AdventureCharacter.generated.h"
 
 enum class EWalkDirection : uint8;
@@ -131,15 +130,6 @@ public:
 	void SetFacingDirection(EWalkDirection Direction);
 
 	EWalkDirection GetFacingDirection();
-
-	//////////////////////////////////
-	///
-	/// BARKING
-	///
-
-	void PlayerBark(FText TextToBark);
-
-	void ClearBark();
 
 	//////////////////////////////////
 	///

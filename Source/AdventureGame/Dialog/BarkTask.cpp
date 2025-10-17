@@ -35,10 +35,14 @@ void UBarkTask::Activate()
 
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("UBarkTask Activate - %s"), *(BarkText.ToString()));
 
-    auto Apc = GetAdventureController();
-    Apc->PlayerBark(BarkText, MyUID);
-
-    GetAdventureController()->EndBark.AddUObject(this, &UBarkTask::BarkCompleted);
+    if (ACommandManager *CommandManager = GetCommandManager())
+    {
+        if (UPlayerBarkManager *BarkManager = CommandManager->GetBarkController())
+        {
+            BarkManager->PlayerBark(BarkText, MyUID);
+            BarkManager->EndPlayerBark.AddUObject(this, &UBarkTask::BarkCompleted);
+        }
+    }
 }
 
 AAdventurePlayerController* UBarkTask::GetAdventureController() const

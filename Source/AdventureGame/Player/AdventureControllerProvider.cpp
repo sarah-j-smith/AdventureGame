@@ -14,15 +14,15 @@ AAdventurePlayerController* IAdventureControllerProvider::GetAdventurePlayerCont
     {
         APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldContextObject, 0);
         AAdventurePlayerController* AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController);
-        if (!IsValid(AdventurePlayerController))
+        if (AdventurePlayerController && IsValid(AdventurePlayerController))
         {
-            // Could happen if the level is being torn down or a loading of a save game is in progress
-            UE_LOG(LogAdventureGame, Warning, TEXT("Adventure player controller not available in %hs - %d"),
-                   __FUNCTION__, __LINE__);
-            return nullptr;
+            CachedAdventureController = AdventurePlayerController;
+            return AdventurePlayerController;
         }
-        CachedAdventureController = AdventurePlayerController;
-        return AdventurePlayerController;
+        // Could happen if the level is being torn down or a loading of a save game is in progress
+        UE_LOG(LogAdventureGame, Display, TEXT("Adventure player controller not available in %s"),
+               *WorldContextObject->GetName());
+        return nullptr;
     }
     // Programmer error - only add IItemManagerProvider interface to UObject subclasses
     UE_LOG(LogAdventureGame, Fatal,
@@ -38,26 +38,7 @@ AAdventureCharacter *IAdventureControllerProvider::GetAdventureCharacter()
         return AdventureController->PlayerCharacter;
     }
     // Could happen if the level is being torn down or a loading of a save game is in progress
-    UE_LOG(LogAdventureGame, Warning, TEXT("Adventure player character not available in %hs - %d"),
+    UE_LOG(LogAdventureGame, Display, TEXT("Adventure player character not available in %hs - %d"),
            __FUNCTION__, __LINE__);
     return nullptr;
-}
-
-
-void IAdventureControllerProvider::BarkAndEnd(FText Text)
-{
-    if (AAdventurePlayerController *AdventureController = GetAdventurePlayerController())
-    {
-        AdventureController->PlayerBark(Text);
-        if (AdventureController->Command)
-            AdventureController->Command->bShouldInterruptCurrentActionOnNextTick = true;
-    }
-}
-
-void IAdventureControllerProvider::Bark(FText Text)
-{
-    if (AAdventurePlayerController *AdventureController = GetAdventurePlayerController())
-    {
-        AdventureController->PlayerBark(Text);
-    }
 }

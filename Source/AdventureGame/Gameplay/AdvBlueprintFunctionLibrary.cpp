@@ -47,7 +47,7 @@ ACommandManager* UAdvBlueprintFunctionLibrary::GetCommandManager(const UObject* 
         return CommandManager;
     }
     // Could happen if the level is being torn down or a loading of a save game is in progress
-    UE_LOG(LogAdventureGame, Warning, TEXT("%hs - %s Command manager not available in"),
+    UE_LOG(LogAdventureGame, Display, TEXT("%hs - %s Command manager not available in"),
         __FUNCTION__, *(WorldContextObject->GetName()));
     return nullptr;
 }
@@ -61,7 +61,7 @@ UItemManager* UAdvBlueprintFunctionLibrary::GetItemManager(const UObject* WorldC
             return ItemManager;
         }
         // Could happen if the level is being torn down or a loading of a save game is in progress
-        UE_LOG(LogAdventureGame, Warning, TEXT("%hs - %s Item Manager not available in"),
+        UE_LOG(LogAdventureGame, Display, TEXT("%hs - %s Item Manager not available in"),
             __FUNCTION__, *(WorldContextObject->GetName()));
     }
     return nullptr;
@@ -69,9 +69,9 @@ UItemManager* UAdvBlueprintFunctionLibrary::GetItemManager(const UObject* WorldC
 
 void UAdvBlueprintFunctionLibrary::PlayerBark(const UObject* WorldContextObject, FText BarkText)
 {
-    if (AAdventurePlayerController* AdventurePlayerController = GetAdventureController(WorldContextObject))
+    if (ACommandManager *CommandManager = GetCommandManager(WorldContextObject))
     {
-        AdventurePlayerController->PlayerBark(BarkText);
+        CommandManager->Bark(BarkText);
     }
 }
 

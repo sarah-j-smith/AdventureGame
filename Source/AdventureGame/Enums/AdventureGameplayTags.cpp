@@ -1,5 +1,6 @@
 #include "AdventureGameplayTags.h"
 
+#include "ItemAssetType.h"
 #include "AdventureGame/AdventureGame.h"
 
 namespace AdventureGameplayTags
@@ -15,6 +16,10 @@ namespace AdventureGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(HotSpot_Hidden, "HotSpot.Hidden", "The entire HotSpot actor is hidden");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(HotSpot_SpriteHidden, "HotSpot.SpriteHidden", "The PickUp sprite is hidden");
 
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Article, "Item.Treatment.Article", "Object that can be held, examined and given");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Consumable, "Item.Treatment.Consumable", "After being successfully used it is destroyed");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Tool, "Item.Treatment.Tool", "Can be used on another item to create a brand new item");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Key, "Item.Treatment.Key", "Can be used on a hotspot to lock or unlock it");
 
     void SetDoorState(EDoorState State, FGameplayTagContainer &Tags)
     {
@@ -35,6 +40,16 @@ namespace AdventureGameplayTags
             Tags.AddTag(AdventureGameplayTags::State_Locked);
             break;
         }
+    }
+
+    TSet<EItemAssetType> GetItemAssetTypes(const FGameplayTagContainer &Tags)
+    {
+        TSet<EItemAssetType> Result;
+        if (Tags.HasTag(Item_Treatment_Article)) Result.Add(EItemAssetType::Article);
+        if (Tags.HasTag(Item_Treatment_Consumable)) Result.Add(EItemAssetType::Consumable);
+        if (Tags.HasTag(Item_Treatment_Tool)) Result.Add(EItemAssetType::Tool);
+        if (Tags.HasTag(Item_Treatment_Key)) Result.Add(EItemAssetType::Key);
+        return Result;
     }
 
     EDoorState GetDoorState(const FGameplayTagContainer &Tags)
