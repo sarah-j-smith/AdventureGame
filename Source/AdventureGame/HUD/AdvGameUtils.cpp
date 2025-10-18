@@ -57,6 +57,24 @@ FText AdvGameUtils::GetUsingItemText(const UInventoryItem* CurrentItem, const UI
     return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_USE_SUBJECT_ON_OBJECT_KEY), VerbArgs);
 }
 
+FText AdvGameUtils::GetUsingOnSelfText(const UInventoryItem* CurrentItem)
+{
+    verifyf(CurrentItem, TEXT("GetUsingOnSelfText expects CurrentItem to be non-null"));
+    FText SubjectText = CurrentItem->ShortDescription;
+    FFormatNamedArguments VerbArgs;
+    VerbArgs.Add("Subject", SubjectText);
+    return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_USE_ON_SELF_DEFAULT_KEY), VerbArgs);
+}
+
+FText AdvGameUtils::GetGiveToSelfText(const UInventoryItem* CurrentItem)
+{
+    verifyf(CurrentItem, TEXT("GetGiveToSelfText expects CurrentItem to be non-null"));
+    FText SubjectText = CurrentItem->ShortDescription;
+    FFormatNamedArguments VerbArgs;
+    VerbArgs.Add("Subject", SubjectText);
+    return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_GIVE_TO_SELF_DEFAULT_KEY), VerbArgs);
+}
+
 FText AdvGameUtils::GetVerbWithItemText(const UInventoryItem* CurrentItem, const EVerbType Verb)
 {
     verifyf(CurrentItem, TEXT("GetVerbWithItemString expects CurrentItem to be non-null"));

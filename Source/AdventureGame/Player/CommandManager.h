@@ -3,32 +3,35 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "AdventureControllerProvider.h"
 #include "BarkProvider.h"
 #include "TestBarkController.h"
+
 #include "AdventureGame/Dialog/PlayerBarkManager.h"
 #include "AdventureGame/Enums/BarkAction.h"
 #include "AdventureGame/Enums/PlayerCommand.h"
 #include "AdventureGame/Enums/VerbType.h"
 #include "AdventureGame/HUD/AdventureGameHUD.h"
 #include "AdventureGame/Items/ItemManagerProvider.h"
+
 #include "GameFramework/Actor.h"
 #include "Navigation/PathFollowingComponent.h"
+
 #include "CommandManager.generated.h"
 
 class UAdventureGameInstance;
 class UAdventureGameHUD;
-class UVerbsUI;
 class AAdventureAIController;
 class APuck;
 class UItemManager;
-class AAdventurePlayerController;
 class AAdventureCharacter;
 class UInteractionNotifier;
 
 DECLARE_MULTICAST_DELEGATE(FUpdateInteractionText);
 DECLARE_MULTICAST_DELEGATE(FBeginAction);
-DECLARE_MULTICAST_DELEGATE(FInterruptAction);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInterruptAction);
 
 class UItemSlot;
 class AHotSpot;
@@ -138,7 +141,7 @@ public:
     {
         if (const UPlayerBarkManager* PlayerBarkManager = GetBarkController())
         {
-            return bShouldInterruptCurrentActionOnNextTick && PlayerBarkManager->IsPlayerBarking() !=
+            return bShouldInterruptCurrentActionOnNextTick && PlayerBarkManager->IsPlayerBarking() ==
                 EBarkAction::NotBarking;
         }
         return bShouldInterruptCurrentActionOnNextTick;
@@ -159,6 +162,8 @@ public:
 
     FBeginAction BeginAction;
 
+    /// Event fired when the current action is terminated/interrupted
+    UPROPERTY(BlueprintAssignable, Category="InterruptCommands")
     FInterruptAction InterruptAction;
 
     //////////////////////////////////

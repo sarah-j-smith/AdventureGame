@@ -7,6 +7,8 @@
 #include "BarkRequest.h"
 #include "Blueprint/UserWidget.h"
 #include "../Constants.h"
+#include "AdventureGame/Enums/BarkRequestFinishReason.h"
+#include "AdventureGame/Player/AdventureControllerProvider.h"
 
 #include "BarkText.generated.h"
 
@@ -16,12 +18,13 @@ class UVerticalBox;
 class USphereComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FBarkRequestComplete, int32 /* UID */);
+DECLARE_MULTICAST_DELEGATE_OneParam(FBarkRequestInterrupted, int32 /* UID */);
 
 /**
  * 
  */
 UCLASS()
-class ADVENTUREGAME_API UBarkText : public UUserWidget
+class ADVENTUREGAME_API UBarkText : public UUserWidget, public IAdventureControllerProvider
 {
 	GENERATED_BODY()
 public:
@@ -64,6 +67,7 @@ public:
 	USphereComponent* BarkPosition;
 
 	FBarkRequestComplete BarkRequestCompleteDelegate;
+	FBarkRequestInterrupted BarkRequestInterruptedDelegate;
 	
 	void AddBarkRequest(const FBarkRequest *BarkRequest);
 	
@@ -73,6 +77,8 @@ public:
 	bool IsBarking() const { return bIsBarking; }
 
 	bool IsPlayerRequest() const { return CurrentBarkRequest && CurrentBarkRequest->IsPlayer(); }
+
+	float OverrideDisplayTime = INVALID_BARK_DELAY;
 	
 private:
 		
@@ -149,7 +155,7 @@ private:
 	/// Called when the BarkLineTimer times out. Keeps feeding the current multiline
 	/// message <code>BarkLines</code> into the bark container; or if that is complete
 	/// then loads a BarkRequest if one is queued.
-	void AddQueuedBarkLine();
+	void AddQueuedBarkLine(EBarkRequestFinishedReason Reason);
 
 public:
 	/// Remove all queued requests

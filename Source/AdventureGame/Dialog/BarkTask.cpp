@@ -21,6 +21,7 @@ UBarkTask* UBarkTask::DoBarkTask(const UObject* WorldContextObject, const FText 
 {
     UBarkTask* BlueprintNode = NewObject<UBarkTask>();
     BlueprintNode->WorldContextObject = WorldContextObject;
+    BlueprintNode->BarkText = BarkText;
 
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("UBarkTask created"));
 
@@ -45,20 +46,21 @@ void UBarkTask::Activate()
     }
 }
 
-AAdventurePlayerController* UBarkTask::GetAdventureController() const
-{
-    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldContextObject, 0);
-    AAdventurePlayerController* AdventurePlayerController = Cast<AAdventurePlayerController>(PlayerController);
-    return AdventurePlayerController;
-}
-
-void UBarkTask::BarkCompleted(int32 UID)
+void UBarkTask::BarkCompleted(int32 UID, EBarkRequestFinishedReason Reason)
 {
     if (UID == MyUID)
     {
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Task completion message UID: %d - BarkText: %s"),
                UID, *(BarkText.ToString()));
-        TaskCompleted.Broadcast();
+        switch (Reason)
+        {
+        case EBarkRequestFinishedReason::Timeout:
+            TaskCompleted.Broadcast();
+            break;
+        case EBarkRequestFinishedReason::Interruption:
+            TaskInterrupted.Broadcast();
+            break;
+        }
         SetReadyToDestroy();
     }
     else

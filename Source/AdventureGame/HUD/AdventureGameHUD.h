@@ -16,8 +16,6 @@
 #include "AdventureGameHUD.generated.h"
 
 class USphereComponent;
-class AAdventureCharacter;
-class AAdventurePlayerController;
 
 /**
  * 

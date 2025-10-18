@@ -17,9 +17,6 @@
 
 enum class EVerbType : uint8;
 
-class UPaperSprite;
-class AAdventurePlayerController;
-
 DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataSave, AHotSpot *, HotSpot);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataLoad, AHotSpot *, HotSpot);
 

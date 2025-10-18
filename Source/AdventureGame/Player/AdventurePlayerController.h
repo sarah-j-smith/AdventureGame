@@ -30,12 +30,6 @@ class UAdventureGameHUD;
 class AHotSpot;
 class APuck;
 
-DECLARE_DELEGATE(FRunInterruptedActionDelegate);
-
-DECLARE_MULTICAST_DELEGATE(FUserInteraction);
-
-DECLARE_MULTICAST_DELEGATE(FBeginAction);
-DECLARE_MULTICAST_DELEGATE(FInterruptAction);
 DECLARE_MULTICAST_DELEGATE(FUpdateSaveGameText);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FUpdateSaveGameIndicator, ESaveGameStatus /* SaveStatus */, bool /* Success */);
 

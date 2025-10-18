@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #include "AdventureGame/Constants.h"
+#include "AdventureGame/Enums/BarkRequestFinishReason.h"
 
 #include "Components/ActorComponent.h"
 #include "PlayerBarkManager.generated.h"
@@ -13,7 +14,7 @@ enum class EBarkAction : uint8;
 class ACommandManager;
 class UAdventureGameHUD;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FEndBark, int32 /* UID */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FEndBark, int32 /* UID */, EBarkRequestFinishedReason /* BarkFinishReason */);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class ADVENTUREGAME_API UPlayerBarkManager : public UActorComponent
@@ -51,7 +52,8 @@ public:
 
     void SetAdventureGameHUD(class UAdventureGameHUD *HUD);
 
-    void OnEndBark(int32 BarkTaskId);
+    void OnTimeoutBark(int32 BarkTaskId);
+    void OnInterruptBark(int32 BarkTaskId);
 
 private:
     UPROPERTY()

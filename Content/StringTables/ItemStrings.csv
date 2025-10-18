@@ -25,3 +25,5 @@ AlreadyOpened,It's already opened.,Text for when player tries to open something 
 Locked,It's locked.,Text for when player tries to open something that is locked
 UseClosedAndLocked,"It's closed, and locked.",Text for when player tries to use something that's locked
 NotOpenable,Doesn't look like it can open.,"Text for when player tries to open something that makes no sense to open, like a puddle of water."
+UseOnSelfDefaultText,Can't use {Subject} on itself,Text for when player tries to use an item on itself
+GiveToSelfDefaultText,Can't give {Subject} to itself,Text for when player tries to give an item to itself

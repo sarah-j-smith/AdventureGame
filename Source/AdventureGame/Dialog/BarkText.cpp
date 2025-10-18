@@ -51,7 +51,7 @@ void UBarkText::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
         BarkLineTimer -= InDeltaTime;
         if (BarkLineTimer <= 0.f)
         {
-            AddQueuedBarkLine();
+            AddQueuedBarkLine(EBarkRequestFinishedReason::Timeout);
         }
     }
 }
@@ -67,7 +67,7 @@ void UBarkText::OnUserInteracted()
     if (bIsBarking)
     {
         BarkLineTimer = 0.0f;
-        AddQueuedBarkLine();
+        AddQueuedBarkLine(EBarkRequestFinishedReason::Interruption);
     }
 }
 
@@ -174,14 +174,17 @@ void UBarkText::LoadNextBarkRequest()
     BarkPosition = CurrentBarkRequest->GetPosition();
     if (!IsValid(BarkPosition))
     {
-        const AAdventurePlayerController* PlayerController = Cast<AAdventurePlayerController>(GetOwningPlayer());
-        BarkPosition = PlayerController->PlayerCharacter->Sphere;
+        if (const AAdventureCharacter *AdventureCharacter = GetAdventureCharacter())
+        {
+            BarkPosition = AdventureCharacter->Sphere;
+        }
     }
     BarkLineDisplayTime = CurrentBarkRequest->GetDuration();
+    if (OverrideDisplayTime != INVALID_BARK_DELAY) BarkLineDisplayTime = OverrideDisplayTime;
     BarkTextColor = CurrentBarkRequest->GetColor();
 }
 
-void UBarkText::AddQueuedBarkLine()
+void UBarkText::AddQueuedBarkLine(EBarkRequestFinishedReason Reason)
 {
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("AddQueuedBarkLine - count: %d - current: %d"), BarkLines.Num(), CurrentBarkLine);
     if (CurrentBarkLine < BarkLines.Num())
@@ -201,7 +204,15 @@ void UBarkText::AddQueuedBarkLine()
         delete CurrentBarkRequest;
         CurrentBarkRequest = nullptr;
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("AddQueuedBarkLine - UID %d, broadcasting - doing clean up"), CurrentUID);
-        BarkRequestCompleteDelegate.Broadcast(CurrentUID);
+        switch (Reason)
+        {
+        case EBarkRequestFinishedReason::Timeout:
+            BarkRequestCompleteDelegate.Broadcast(CurrentUID);
+            break;
+        case EBarkRequestFinishedReason::Interruption:
+            BarkRequestInterruptedDelegate.Broadcast(CurrentUID);
+            break;
+        }
         HideContainer();
         ClearText();
         if (RequestQueue)

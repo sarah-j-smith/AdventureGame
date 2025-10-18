@@ -32,6 +32,9 @@
 #define G_VERB_SUBJECT_KEY "Verb_subject"
 #define G_USE_SUBJECT_ON_OBJECT_KEY "Use_subject_on_object"
 #define G_GIVE_SUBJECT_TO_OBJECT_KEY "Give_subject_to_object"
+#define G_USE_ON_SELF_DEFAULT_KEY "UseOnSelfDefaultText"
+#define G_GIVE_TO_SELF_DEFAULT_KEY "GiveToSelfDefaultText"
+
 #define G_SCORE_TEMPLATE_KEY "Score"
 
 #define SAVE_GAME_NAME "AdventureGame_SaveGameFile"
@@ -67,3 +70,4 @@ constexpr int32 GMax_Number_Of_Prompts = 5;
 #define G_MAX_BARK_LINES 3
 #define BARK_LINE_DELAY 2.0f
 #define BARK_LINE_WIDTH 30
+#define INVALID_BARK_DELAY -99.0f

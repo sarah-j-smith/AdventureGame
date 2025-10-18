@@ -10,13 +10,9 @@
 #include "../Gameplay/VerbInteractions.h"
 #include "AdventureGame/Enums/DoorState.h"
 #include "AdventureGame/Enums/VerbType.h"
-#include "AdventureGame/Player/AdventureControllerProvider.h"
 #include "Internationalization/StringTableRegistry.h"
 #include "Paper2D/Classes/PaperSprite.h"
 #include "InventoryItem.generated.h"
-
-class AAdventurePlayerController;
-class UItemList;
 
 /**
  * The `Item` in our inventory.

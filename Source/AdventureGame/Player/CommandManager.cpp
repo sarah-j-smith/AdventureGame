@@ -590,6 +590,7 @@ void ACommandManager::SetupHUD()
     if (PlayerBarkManager && IsValid(PlayerBarkManager))
     {
         PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
+        AdventureGameHUD->Bark->OverrideDisplayTime = 1.0f;
     }
     if (UAdventureGameInstance *AdventureGameInstance = GetAdventureGameInstance())
     {

@@ -45,12 +45,18 @@ void UPlayerBarkManager::PlayerBarkAndEnd(const FText &BarkText)
     IsBarking = true;
     const FBarkRequest* Request = FBarkRequest::CreatePlayerRequest(BarkText);
     AdventureHUDWidget->Bark->AddBarkRequest(Request);
+    CurrentBarkTasks.Add(Request->GetUID());
+    if (ACommandManager *CommandManager = GetCommandManager())
+    {
+        CommandManager->bShouldInterruptCurrentActionOnNextTick = true;
+    }
 }
 
 void UPlayerBarkManager::PlayerBark(const FText& BarkText, int32 BarkTaskUid)
 {
     IsBarking = true;
-    const FBarkRequest* Request = FBarkRequest::CreatePlayerRequest(BarkText, 0.0f, BarkTaskUid);
+    FBarkRequest* Request = FBarkRequest::CreatePlayerRequest(BarkText, 0.0f, BarkTaskUid);
+    CurrentBarkTasks.Add(Request->GetUID());
     AdventureHUDWidget->Bark->AddBarkRequest(Request);
 }
 
@@ -59,6 +65,7 @@ void UPlayerBarkManager::PlayerBarkLines(const TArray<FText>& BarkTextArray, int
     if (BarkTextArray.IsEmpty()) return;
     IsBarking = true;
     const FBarkRequest* Request = FBarkRequest::CreatePlayerMultilineRequest(BarkTextArray);
+    CurrentBarkTasks.Add(Request->GetUID());
     AdventureHUDWidget->Bark->AddBarkRequest(Request);
 }
 
@@ -88,7 +95,7 @@ void UPlayerBarkManager::ClearBark()
         UE_LOG(LogAdventureGame, Warning, TEXT("ClearBark - bIsBarking"));
         for (int32 BarkTask : CurrentBarkTasks)
         {
-            EndPlayerBark.Broadcast(BarkTask);
+            EndPlayerBark.Broadcast(BarkTask, EBarkRequestFinishedReason::Interruption);
         }
         CurrentBarkTasks.Empty();
         IsBarking = false;
@@ -115,15 +122,27 @@ EBarkAction UPlayerBarkManager::IsPlayerBarking() const
 void UPlayerBarkManager::SetAdventureGameHUD(class UAdventureGameHUD* HUD)
 {
     AdventureHUDWidget = HUD;
-    AdventureHUDWidget->Bark->BarkRequestCompleteDelegate.AddUObject(this, &UPlayerBarkManager::OnEndBark);
+    AdventureHUDWidget->Bark->BarkRequestCompleteDelegate.AddUObject(this, &UPlayerBarkManager::OnTimeoutBark);
+    AdventureHUDWidget->Bark->BarkRequestInterruptedDelegate.AddUObject(this, &UPlayerBarkManager::OnInterruptBark);
 }
 
-void UPlayerBarkManager::OnEndBark(int32 BarkTaskId)
+void UPlayerBarkManager::OnTimeoutBark(int32 BarkTaskId)
 {
     if (const int TaskIndex = CurrentBarkTasks.IndexOfByKey(BarkTaskId); TaskIndex != INDEX_NONE)
     {
         CurrentBarkTasks.RemoveAt(TaskIndex);
-        EndPlayerBark.Broadcast(BarkTaskId);
+        EndPlayerBark.Broadcast(BarkTaskId, EBarkRequestFinishedReason::Timeout);
     }
     IsBarking = AdventureHUDWidget->Bark->IsBarking();
 }
+
+void UPlayerBarkManager::OnInterruptBark(int32 BarkTaskId)
+{
+    if (const int TaskIndex = CurrentBarkTasks.IndexOfByKey(BarkTaskId); TaskIndex != INDEX_NONE)
+    {
+        CurrentBarkTasks.RemoveAt(TaskIndex);
+        EndPlayerBark.Broadcast(BarkTaskId, EBarkRequestFinishedReason::Interruption);
+    }
+    IsBarking = AdventureHUDWidget->Bark->IsBarking();
+}
+

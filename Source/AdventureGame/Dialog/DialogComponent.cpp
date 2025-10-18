@@ -6,13 +6,10 @@
 #include "BarkText.h"
 #include "ConversationData.h"
 #include "HotSpotNPC.h"
-#include "../HUD/PromptList.h"
-#include "../HUD/AdventureGameHUD.h"
-
-#include "../AdventureGame.h"
-#include "../Player/AdventurePlayerController.h"
-
-#include "Kismet/GameplayStatics.h"
+#include "AdventureGame/HUD/PromptList.h"
+#include "AdventureGame/HUD/AdventureGameHUD.h"
+#include "AdventureGame/Player/CommandManager.h"
+#include "AdventureGame/AdventureGame.h"
 
 // Sets default values for this component's properties
 UDialogComponent::UDialogComponent()
@@ -20,10 +17,7 @@ UDialogComponent::UDialogComponent()
     // Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
     // off to improve performance if you don't need them.
     PrimaryComponentTick.bCanEverTick = true;
-
-    
 }
-
 
 // Called when the game starts
 void UDialogComponent::BeginPlay()
@@ -250,6 +244,7 @@ void UDialogComponent::InitialiseForBarking()
     Bark = Command->AdventureGameHUD->Bark;
     Bark->ClearText();
     Bark->BarkRequestCompleteDelegate.AddUObject(this, &UDialogComponent::OnBarkTimerTimeout);
+    Bark->BarkRequestInterruptedDelegate.AddUObject(this, &UDialogComponent::OnBarkTimerTimeout);
 }
 
 void UDialogComponent::TearDownBarkingSetup()
@@ -257,6 +252,7 @@ void UDialogComponent::TearDownBarkingSetup()
     if (Bark)
     {
         Bark->BarkRequestCompleteDelegate.RemoveAll(this);
+        Bark->BarkRequestInterruptedDelegate.RemoveAll(this);
     }
     if (PromptList)
     {

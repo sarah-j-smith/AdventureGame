@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AdventureGame/AdventureGame.h"
 #include "AdventureGame/Enums/ChoiceState.h"
 #include "AdventureGame/Enums/ItemKind.h"
 #include "AdventureGame/Enums/VerbType.h"
 #include "UObject/Object.h"
 #include "ItemManager.generated.h"
 
-class AAdventurePlayerController;
 class UItemList;
 class UItemSlot;
 class UInventoryItem;

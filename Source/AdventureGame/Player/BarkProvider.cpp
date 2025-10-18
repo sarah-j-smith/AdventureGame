@@ -54,13 +54,9 @@ UPlayerBarkManager *Local_GetBarkController(IBarkProvider *ContextObject)
 
 void IBarkProvider::Bark(FText BarkText)
 {
-    if (ACommandManager *CommandManager = Local_GetCommandManager(this))
+    if (UPlayerBarkManager *BarkController = Local_GetBarkController(this))
     {
-        if (UPlayerBarkManager *BarkController = CommandManager->GetBarkController())
-        {
-            BarkController->PlayerBark(BarkText);
-            CommandManager->bShouldInterruptCurrentActionOnNextTick = true;
-        }
+        BarkController->PlayerBark(BarkText);
     }
 }
 

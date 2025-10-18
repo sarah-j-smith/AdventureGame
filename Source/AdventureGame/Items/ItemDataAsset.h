@@ -7,14 +7,8 @@
 #include "ItemManagerProvider.h"
 #include "AdventureGame/Enums/ItemAssetType.h"
 #include "AdventureGame/Enums/ItemKind.h"
-#include "AdventureGame/Player/AdventureControllerProvider.h"
 #include "AdventureGame/Player/BarkProvider.h"
 #include "ItemDataAsset.generated.h"
-
-class AAdventurePlayerController;
-class UItemList;
-class UInventoryItem;
-class AHotSpot;
 
 /**
  * Data and functions to handle items interacting with hotspots or other

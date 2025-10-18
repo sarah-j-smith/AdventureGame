@@ -44,7 +44,7 @@ void UAdventureGameHUD::BindCommandHandlers(ACommandManager *CommandManager)
     {
         CommandManager->BeginAction.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
         CommandManager->UpdateInteractionTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInteractionTextEvent);
-        CommandManager->InterruptAction.AddUObject(this, &UAdventureGameHUD::InterruptActionEvent);
+        CommandManager->InterruptAction.AddUniqueDynamic(this, &UAdventureGameHUD::InterruptActionEvent);
         UE_LOG(LogAdventureGame, Display, TEXT("UAdventureGameHUD::BindCommandHandlers succeeded"));
         if (UInteractionNotifier *Notifier = CommandManager->InteractionNotifier)
         {
@@ -148,17 +148,29 @@ void UAdventureGameHUD::SetInventoryText()
     {
     case EVerbType::Use:
     case EVerbType::UseItem:
-        if (SourceItem == TargetItem) return;
-        InventoryText = (TargetItem || HotSpot)
-                            ? AdvGameUtils::GetUsingItemText(SourceItem, TargetItem, HotSpot)
-                            : AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
+        if (SourceItem == TargetItem)
+        {
+            InventoryText = AdvGameUtils::GetUsingOnSelfText(SourceItem);
+        }
+        else
+        {
+            InventoryText = (TargetItem || HotSpot)
+                                ? AdvGameUtils::GetUsingItemText(SourceItem, TargetItem, HotSpot)
+                                : AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
+        }
         break;
     case EVerbType::GiveItem:
     case EVerbType::Give:
-        if (SourceItem == TargetItem) return;
-        InventoryText = (TargetItem || HotSpot)
-                            ? AdvGameUtils::GetGivingItemText(SourceItem, TargetItem, HotSpot)
-                            : AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
+        if (SourceItem == TargetItem)
+        {
+            InventoryText = AdvGameUtils::GetGiveToSelfText(SourceItem);
+        }
+        else
+        {
+            InventoryText = (TargetItem || HotSpot)
+                                ? AdvGameUtils::GetGivingItemText(SourceItem, TargetItem, HotSpot)
+                                : AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
+        }
         break;
     default:
         InventoryText = AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);

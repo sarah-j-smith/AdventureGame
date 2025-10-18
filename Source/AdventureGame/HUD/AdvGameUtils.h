@@ -55,6 +55,21 @@ struct AdvGameUtils
         const AHotSpot* HotSpot
     );
 
+    /**
+     * Example: "Use sharp knife on old notebook", "Use pen on brick wall"
+     * @param CurrentItem Item held by the player character, eg pen
+     * @return FString text to display */
+    static FText GetUsingOnSelfText(
+        const UInventoryItem* CurrentItem
+    );
+
+    /**
+     * Example: "Use sharp knife on old notebook", "Use pen on brick wall"
+     * @param CurrentItem Item held by the player character, eg pen
+     * @return FString text to display */
+    static FText GetGiveToSelfText(
+        const UInventoryItem* CurrentItem
+    );
 
     /**
      * For doing a verb to an item, return the text as an FText

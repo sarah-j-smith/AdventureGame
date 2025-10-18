@@ -3,30 +3,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AdventureGame/Enums/BarkRequestFinishReason.h"
 #include "AdventureGame/Items/ItemManagerProvider.h"
-#include "AdventureGame/Player/BarkProvider.h"
 
 #include "Kismet/BlueprintAsyncActionBase.h"
 #include "BarkTask.generated.h"
-
-class USphereComponent;
-class AAdventurePlayerController;
 
 /// https://unrealcommunity.wiki/creating-asynchronous-blueprint-nodes-ctnmtj0q
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBarkOutputPin);
 
 /**
- * Manage player asynchronous bark from blueprint actions.
+ * Manage player asynchronous bark from blueprint actions. Use this when you want the player to bark
+ * a message and wait until the bark is finished before continuing with more blueprint nodes/actions.
  */
 UCLASS()
 class ADVENTUREGAME_API UBarkTask : public UBlueprintAsyncActionBase, public IItemManagerProvider
 {
     GENERATED_UCLASS_BODY()
 public:
+    /// The bark was displayed and after its allotted time was removed from the screen.
     UPROPERTY(BlueprintAssignable)
     FBarkOutputPin TaskCompleted;
 
+    /// The bark was displayed and then a player click or tap dismissed it.
     UPROPERTY(BlueprintAssignable)
     FBarkOutputPin TaskInterrupted;
 
@@ -54,7 +54,5 @@ public:
 
 private:
     UFUNCTION()
-    void BarkCompleted(int32 UID);
-
-    AAdventurePlayerController* GetAdventureController() const;
+    void BarkCompleted(int32 UID, EBarkRequestFinishedReason Reason);
 };

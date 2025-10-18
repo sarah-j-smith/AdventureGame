@@ -10,7 +10,6 @@
 
 #include "ItemList.generated.h"
 
-class AAdventurePlayerController;
 enum class EItemKind : uint8;
 class UInventoryItem;
 

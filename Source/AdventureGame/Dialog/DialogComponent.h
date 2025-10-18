@@ -7,15 +7,14 @@
 #include "ConversationData.h"
 #include "AdventureGame/Constants.h"
 #include "AdventureGame/Enums/DialogState.h"
-#include "AdventureGame/Player/AdventurePlayerController.h"
 #include "Components/ActorComponent.h"
 
 #include "DialogComponent.generated.h"
 
 class AHotSpotNPC;
-class AAdventurePlayerController;
 class UBarkText;
 class UPromptList;
+class ACommandManager;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FConversationDataLoad, UDialogComponent *, DialogComponent);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FConversationDataSave, UDialogComponent *, DialogComponent);

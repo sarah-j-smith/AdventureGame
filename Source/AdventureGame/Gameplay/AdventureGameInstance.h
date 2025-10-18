@@ -23,7 +23,6 @@
 
 class AHotSpot;
 class UItemList;
-class AAdventurePlayerController;
 class UAdventureSave;
 class ADoor;
 class UAdventureGameHUD;

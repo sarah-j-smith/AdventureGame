@@ -21,7 +21,7 @@ void UInventoryItem::OnItemUseSuccess_Implementation()
 {
     UE_LOG(LogAdventureGame, Log, TEXT("OnItemUseSuccess Success - default."));
     
-    if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::Use))
+    if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::UseItem))
     {
         ItemDataAsset->OnItemUseSuccess();
         return;
@@ -36,7 +36,7 @@ void UInventoryItem::OnItemUseFailure_Implementation()
 
 void UInventoryItem::OnItemGiveSuccess_Implementation()
 {
-    if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::Give))
+    if (UItemDataAsset *ItemDataAsset = ItemDataAssetForAction(EVerbType::GiveItem))
     {
         ItemDataAsset->OnItemGiveSuccess();
         return;
@@ -52,7 +52,7 @@ void UInventoryItem::OnItemGiveFailure_Implementation()
 UItemDataAsset* UInventoryItem::ItemDataAssetForAction(const EVerbType Verb) const
 {
     // TODO - remove this bit of code once the deprecated OnUseSuccessItem and OnGiveSuccessItem are gone
-    if (Verb == EVerbType::Use)
+    if (Verb == EVerbType::UseItem)
     {
         if (UItemDataAsset *UseItem = OnUseSuccessItem.LoadSynchronous())
         {
@@ -61,7 +61,7 @@ UItemDataAsset* UInventoryItem::ItemDataAssetForAction(const EVerbType Verb) con
             return UseItem;
         }
     }
-    else if (Verb == EVerbType::Give)
+    else if (Verb == EVerbType::GiveItem)
     {
         if (UItemDataAsset *UseItem = OnGiveSuccessItem.LoadSynchronous())
         {

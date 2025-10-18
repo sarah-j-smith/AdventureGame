@@ -33,11 +33,27 @@ AAdventurePlayerController* IAdventureControllerProvider::GetAdventurePlayerCont
 
 AAdventureCharacter *IAdventureControllerProvider::GetAdventureCharacter()
 {
+    // If there is an AdventureController then it should have a current handle to the AdventureCharacter
+    // and if it doesn't then its probably not ready or available, so return it without checking.
     if (const AAdventurePlayerController *AdventureController = GetAdventurePlayerController())
     {
         return AdventureController->PlayerCharacter;
     }
-    // Could happen if the level is being torn down or a loading of a save game is in progress
+    // If there is NOT an AdventureController then its likely because we are in testing mode, in which
+    // case there is no AAdventurePlayerController at all. In that case an AAdventureCharacter reference
+    // is likely to be set on the Command Manager so try to return that, but if it fails log an error.
+    if (const UObject* WorldContextObject = dynamic_cast<UObject*>(this))
+    {
+        AActor* Actor = UGameplayStatics::GetActorOfClass(WorldContextObject, ACommandManager::StaticClass());
+        if (ACommandManager* CommandManager = Cast<ACommandManager>(Actor))
+        {
+            if (CommandManager->PlayerCharacter)
+            {
+                return CommandManager->PlayerCharacter;
+            }
+        }
+    }
+        // Could happen if the level is being torn down or a loading of a save game is in progress
     UE_LOG(LogAdventureGame, Display, TEXT("Adventure player character not available in %hs - %d"),
            __FUNCTION__, __LINE__);
     return nullptr;
