@@ -35,11 +35,18 @@ FText AdvGameUtils::GetGivingItemText(const UInventoryItem* CurrentItem, const U
                                       const AHotSpot* HotSpot)
 {
     verifyf(CurrentItem, TEXT("GetGivingItemString expects CurrentItem to be non-null"));
-    verifyf(TargetItem || HotSpot, TEXT("GetGivingItemString expects either TargetItem or HotSpot to be non-null"));
     FText SubjectText = CurrentItem->ShortDescription;
-    FText TargetText = HotSpot ? HotSpot->ShortDescription : TargetItem->ShortDescription;
     FFormatNamedArguments VerbArgs;
     VerbArgs.Add("Subject", SubjectText);
+    if (HotSpot == nullptr && TargetItem == nullptr)
+    {
+        return FText::Format(LOCTABLE(ITEM_STRINGS_KEY, G_GIVE_TO_PREVIEW), VerbArgs);
+    }
+    if (TargetItem != nullptr && TargetItem->ItemKind == CurrentItem->ItemKind)
+    {
+        return FText::Format(LOCTABLE(ITEM_STRINGS_KEY, G_GIVE_TO_SELF_DEFAULT_KEY), VerbArgs);
+    }
+    FText TargetText = HotSpot ? HotSpot->ShortDescription : TargetItem->ShortDescription;
     VerbArgs.Add("Object", TargetText);
     return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_GIVE_SUBJECT_TO_OBJECT_KEY), VerbArgs);
 }
@@ -48,31 +55,20 @@ FText AdvGameUtils::GetUsingItemText(const UInventoryItem* CurrentItem, const UI
                                      const AHotSpot* HotSpot)
 {
     verifyf(CurrentItem, TEXT("GetGivingItemString expects CurrentItem to be non-null"));
-    verifyf(TargetItem || HotSpot, TEXT("GetGivingItemString expects either TargetItem or HotSpot to be non-null"));
     FText SubjectText = CurrentItem->ShortDescription;
-    FText TargetText = HotSpot ? HotSpot->ShortDescription : TargetItem->ShortDescription;
     FFormatNamedArguments VerbArgs;
     VerbArgs.Add("Subject", SubjectText);
+    if (HotSpot == nullptr && TargetItem == nullptr)
+    {
+        return FText::Format(LOCTABLE(ITEM_STRINGS_KEY, G_USE_ON_PREVIEW), VerbArgs);
+    }
+    if (TargetItem != nullptr && TargetItem->ItemKind == CurrentItem->ItemKind)
+    {
+        return FText::Format(LOCTABLE(ITEM_STRINGS_KEY, G_USE_ON_SELF_DEFAULT_KEY), VerbArgs);
+    }
+    FText TargetText = HotSpot ? HotSpot->ShortDescription : TargetItem->ShortDescription;
     VerbArgs.Add("Object", TargetText);
     return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_USE_SUBJECT_ON_OBJECT_KEY), VerbArgs);
-}
-
-FText AdvGameUtils::GetUsingOnSelfText(const UInventoryItem* CurrentItem)
-{
-    verifyf(CurrentItem, TEXT("GetUsingOnSelfText expects CurrentItem to be non-null"));
-    FText SubjectText = CurrentItem->ShortDescription;
-    FFormatNamedArguments VerbArgs;
-    VerbArgs.Add("Subject", SubjectText);
-    return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_USE_ON_SELF_DEFAULT_KEY), VerbArgs);
-}
-
-FText AdvGameUtils::GetGiveToSelfText(const UInventoryItem* CurrentItem)
-{
-    verifyf(CurrentItem, TEXT("GetGiveToSelfText expects CurrentItem to be non-null"));
-    FText SubjectText = CurrentItem->ShortDescription;
-    FFormatNamedArguments VerbArgs;
-    VerbArgs.Add("Subject", SubjectText);
-    return FText::Format(LOCTABLE(ITEM_DESCRIPTIONS_KEY, G_GIVE_TO_SELF_DEFAULT_KEY), VerbArgs);
 }
 
 FText AdvGameUtils::GetVerbWithItemText(const UInventoryItem* CurrentItem, const EVerbType Verb)

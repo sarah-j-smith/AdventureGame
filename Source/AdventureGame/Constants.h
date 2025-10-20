@@ -34,6 +34,8 @@
 #define G_GIVE_SUBJECT_TO_OBJECT_KEY "Give_subject_to_object"
 #define G_USE_ON_SELF_DEFAULT_KEY "UseOnSelfDefaultText"
 #define G_GIVE_TO_SELF_DEFAULT_KEY "GiveToSelfDefaultText"
+#define G_USE_ON_PREVIEW "UseOnPreview"
+#define G_GIVE_TO_PREVIEW "GiveToPreview"
 
 #define G_SCORE_TEMPLATE_KEY "Score"
 

@@ -27,3 +27,5 @@ UseClosedAndLocked,"It's closed, and locked.",Text for when player tries to use 
 NotOpenable,Doesn't look like it can open.,"Text for when player tries to open something that makes no sense to open, like a puddle of water."
 UseOnSelfDefaultText,Can't use {Subject} on itself,Text for when player tries to use an item on itself
 GiveToSelfDefaultText,Can't give {Subject} to itself,Text for when player tries to give an item to itself
+UseOnPreview,Use {Subject} on ...,Displayed when choosing which object to use an item on
+GiveToPreview,Give {Subject} to ...,Displayed when choosing which character to give an item on

@@ -69,6 +69,47 @@ void UAdventureGameInstance::OnLoadHotSpot(AHotSpot* HotSpot)
 	}
 }
 
+UInventoryItem* UAdventureGameInstance::AddItemToInventory(EItemKind ItemKind)
+{
+	if (Inventory)
+	{
+		return Inventory->AddItemToInventory(ItemKind);
+	}
+	return nullptr;
+}
+
+void UAdventureGameInstance::RemoveItemFromInventory(EItemKind ItemKind)
+{
+	if (Inventory)
+	{
+		Inventory->RemoveItemKindFromInventory(ItemKind);
+	}
+}
+
+void UAdventureGameInstance::RemoveItemsFromInventory(const TSet<EItemKind>& ItemsToRemove)
+{
+	if (Inventory)
+	{
+		Inventory->RemoveItemKindsFromInventory(ItemsToRemove);
+	}
+}
+
+
+bool UAdventureGameInstance::IsInInventory(const EItemKind& ItemToCheck) const
+{
+	return (Inventory && Inventory->Contains(ItemToCheck));
+}
+
+void UAdventureGameInstance::GetInventoryItems(TArray<UInventoryItem*>& Items)
+{
+	if (Inventory) Inventory->GetInventoryItemsArray(Items);
+}
+
+int UAdventureGameInstance::GetInventoryItemCount() const
+{
+	return Inventory ? Inventory->InventorySize : 0;
+}
+
 void UAdventureGameInstance::OnLoadRoom()
 {
 	UE_LOG(LogAdventureGame, Display, TEXT("UAdventureGameInstance::OnLoadRoom - RoomTransitionPhase: %s"),
@@ -151,8 +192,8 @@ void UAdventureGameInstance::SetupRoom()
 		{
 			if (UAdventureGameHUD *Hud = GetHUD())
 			{
+				HUD->BindInventoryHandlers(this);
 				UE_LOG(LogAdventureGame, Verbose, TEXT("Added handler for inventory changed"));
-				PlayerInventoryChanged.AddUniqueDynamic(HUD, &UAdventureGameHUD::HandleInventoryChanged);
 			}
 		}
 	}

@@ -15,6 +15,11 @@ void UInteractionHUD::SetText(const FText NewText)
     }
 }
 
+void UInteractionHUD::SetScore(FText NewText)
+{
+    Score->SetText(NewText);
+}
+
 void UInteractionHUD::HighlightText()
 {
     TextLocked = true;

@@ -21,6 +21,7 @@
 
 #include "AdventureGameInstance.generated.h"
 
+class UInventoryItem;
 class AHotSpot;
 class UItemList;
 class UAdventureSave;
@@ -60,10 +61,30 @@ public:
 	/// Bind to this event to be notified of changes to the players inventory.
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
 	FPlayerInventoryChanged PlayerInventoryChanged;
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	UInventoryItem* AddItemToInventory(EItemKind ItemKind);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	void RemoveItemFromInventory(EItemKind ItemKind);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	void RemoveItemsFromInventory(const TSet<EItemKind>& ItemsToRemove);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	bool IsInInventory(const EItemKind &ItemToCheck) const;
+
+	void GetInventoryItems(TArray<UInventoryItem*> &Items);
+
+	int GetInventoryItemCount() const;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+private:
+	/// Do not expose this inventory object. It will get created and destroyed whenever
+	/// the player saves or loads the game.
+	UPROPERTY()
 	UItemList *Inventory;
 
+public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
 	TSubclassOf<UItemList> InventoryClass;
 

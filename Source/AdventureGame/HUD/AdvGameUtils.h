@@ -25,6 +25,11 @@ struct AdvGameUtils
      * 
      * Uses the <code>ShortDescription</code> of the items and hotspots
      * so ensure these are correct: the default is "thing".
+     *     
+     * Example: "Give talisman to innkeeper" (an NPC hotspot), or "Give
+     *           carrot to rabbit" (an NPC inventory item)
+     * Example: "Give carrot to" - if both TargetItem and HotSpot are null
+     *          for instance when targeting.
      * 
      * @param CurrentItem Item held by the player character
      * @param TargetItem Item  - if the target of the giving is an item
@@ -38,13 +43,15 @@ struct AdvGameUtils
 
     /**
      * For using an item on a hotspot or item, return the text as an FText
-     * translatable / i18n ready - for direct use in the UI. At least one
-     * of CurrentItem or TargetItem must be non-null.
+     * translatable / i18n ready - for direct use in the UI. 
      * 
      * Uses the <code>ShortDescription</code> of the items and hotspots
      * so ensure these are correct: the default is "thing".
      * 
-     * Example: "Use pen on old notebook", "Use pen on brick wall"
+     * Example: "Use pen on old notebook", "Use pen on brick wall".
+     * Example: "Use pen on" - if both TargetItem and HotSpot are null
+     *          for instance when targeting.
+     *          
      * @param CurrentItem Item held by the player character, eg pen
      * @param TargetItem Item  - if the target of the using is an item
      * @param HotSpot HotSpot - if the target of the giving is a hotspot
@@ -56,22 +63,6 @@ struct AdvGameUtils
     );
 
     /**
-     * Example: "Use sharp knife on old notebook", "Use pen on brick wall"
-     * @param CurrentItem Item held by the player character, eg pen
-     * @return FString text to display */
-    static FText GetUsingOnSelfText(
-        const UInventoryItem* CurrentItem
-    );
-
-    /**
-     * Example: "Use sharp knife on old notebook", "Use pen on brick wall"
-     * @param CurrentItem Item held by the player character, eg pen
-     * @return FString text to display */
-    static FText GetGiveToSelfText(
-        const UInventoryItem* CurrentItem
-    );
-
-    /**
      * For doing a verb to an item, return the text as an FText
      * translatable / i18n ready - for direct use in the UI. CurrentItem
      * must be non-null.
@@ -80,6 +71,7 @@ struct AdvGameUtils
      * so ensure this is correct: the default is "thing".
      * 
     * Example: "Open tattered notebook"
+    * 
     * @param CurrentItem Item held by the player character, eg notebook
     * @param Verb EVerbType  - what action is being performed
     * @return FString text to display

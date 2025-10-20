@@ -9,9 +9,9 @@
 #include "UObject/Object.h"
 #include "ItemManager.generated.h"
 
-class UItemList;
 class UItemSlot;
 class UInventoryItem;
+class UAdventureGameInstance;
 
 DECLARE_MULTICAST_DELEGATE(FUpdateItemInteractionText);
 
@@ -129,7 +129,7 @@ public:
 	void ItemsRemoveFromInventory(const TSet<EItemKind> &ItemsToRemove);
 
 private:
-	UItemList *GetInventoryItemList();
+	UAdventureGameInstance *GetAdventureGameInstance();
 	
 public:
 	/// Handle a mouse click on an item button.

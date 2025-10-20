@@ -9,7 +9,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "AdvGameUtils.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"
+#include "AdventureGame/Gameplay/AdventureGameModeBase.h"
 #include "AdventureGame/HotSpots/HotSpot.h"
+#include "AdventureGame/Items/InventoryItem.h"
 
 #include "AdventureGame/Player/ItemManager.h"
 #include "AdventureGame/Player/InteractionNotifier.h"
@@ -72,6 +74,11 @@ void UAdventureGameHUD::BindCommandHandlers(ACommandManager *CommandManager)
 void UAdventureGameHUD::BindInventoryHandlers(UAdventureGameInstance* AdventureGameInstance)
 {
     AdventureGameInstance->PlayerInventoryChanged.AddUniqueDynamic(this, &UAdventureGameHUD::HandleInventoryChanged);
+}
+
+void UAdventureGameHUD::BindScoreHandlers(AAdventureGameModeBase *AdventureGameMode)
+{
+    AdventureGameMode->ScoreDelegate.AddUniqueDynamic(this, &UAdventureGameHUD::HandleScoreChanged);
 }
 
 void UAdventureGameHUD::ShowBlackScreen()
@@ -144,33 +151,19 @@ void UAdventureGameHUD::SetInventoryText()
         InteractionUI->ResetText();
         return;
     }
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Set inventory text: %s - source item: %s - target item: %s - hotspot: %s"),
+        *VerbGetDescriptiveString(Verb).ToString(), *SourceItem->ShortDescription.ToString(),
+        *(TargetItem ? TargetItem->ShortDescription.ToString() : FString("NULL")),
+        *(HotSpot ? HotSpot->ShortDescription.ToString() : FString("NULL")));
     switch (Verb)
     {
     case EVerbType::Use:
     case EVerbType::UseItem:
-        if (SourceItem == TargetItem)
-        {
-            InventoryText = AdvGameUtils::GetUsingOnSelfText(SourceItem);
-        }
-        else
-        {
-            InventoryText = (TargetItem || HotSpot)
-                                ? AdvGameUtils::GetUsingItemText(SourceItem, TargetItem, HotSpot)
-                                : AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
-        }
+        InventoryText = AdvGameUtils::GetUsingItemText(SourceItem, TargetItem, HotSpot);
         break;
     case EVerbType::GiveItem:
     case EVerbType::Give:
-        if (SourceItem == TargetItem)
-        {
-            InventoryText = AdvGameUtils::GetGiveToSelfText(SourceItem);
-        }
-        else
-        {
-            InventoryText = (TargetItem || HotSpot)
-                                ? AdvGameUtils::GetGivingItemText(SourceItem, TargetItem, HotSpot)
-                                : AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
-        }
+        InventoryText = AdvGameUtils::GetGivingItemText(SourceItem, TargetItem, HotSpot);
         break;
     default:
         InventoryText = AdvGameUtils::GetVerbWithItemText(SourceItem, Verb);
@@ -222,6 +215,11 @@ void UAdventureGameHUD::HandleInventoryChanged(EItemKind /*ItemKind*/, EItemDisp
 {
     // TO-DO: Possibly handle changes instead of destroying and re-importing.
     InventoryUI->PopulateInventory(true);
+}
+
+void UAdventureGameHUD::HandleScoreChanged(int32 Score)
+{
+    InteractionUI->SetScore(AdvGameUtils::GetScoreText(Score));
 }
 
 void UAdventureGameHUD::UpdateInteractionTextEvent()

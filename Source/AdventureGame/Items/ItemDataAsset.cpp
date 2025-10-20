@@ -39,7 +39,7 @@ void UItemDataAsset::OnItemUseSuccess_Implementation()
 
     TSet<EItemAssetType> TargetItemAssetTypes = AdventureGameplayTags::GetItemAssetTypes(TargetItemTreatmentTags);
     TargetItemAssetTypes.Add(TargetItemAssetType);
-    for (const EItemAssetType& ItemAssetType : ItemAssetTypes)
+    for (const EItemAssetType& ItemAssetType : TargetItemAssetTypes)
     {
         HandleTargetItem(ItemAssetType, Success);
     }

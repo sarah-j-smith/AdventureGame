@@ -60,11 +60,11 @@ void UItemManager::SwapSourceAndTarget()
 
 UInventoryItem* UItemManager::ItemAddToInventory(const EItemKind& ItemToAdd)
 {
-    if (UItemList* Inventory = GetInventoryItemList())
+    if (UAdventureGameInstance *GameInstance = GetAdventureGameInstance())
     {
-        if (!Inventory->Contains(ItemToAdd))
+        if (!GameInstance->IsInInventory(ItemToAdd))
         {
-            if (UInventoryItem* Item = Inventory->AddItemToInventory(ItemToAdd))
+            if (UInventoryItem* Item = GameInstance->AddItemToInventory(ItemToAdd))
             {
                 return Item;
             }
@@ -72,6 +72,9 @@ UInventoryItem* UItemManager::ItemAddToInventory(const EItemKind& ItemToAdd)
 #if WITH_EDITOR
         else
         {
+            /// At the present even if there's two different EItemKind::Knife objects with different
+            /// descriptions they are treated as the same item. To have two Knife objects with different
+            /// descriptions you must create a new entry in the enum table, EItemKind::Knife2
             FString DebugString = FItemKind::GetDescription(ItemToAdd).ToString();
             UE_LOG(LogAdventureGame, Warning, TEXT("Cannot create %s - already held in inventory"),
                    *DebugString);
@@ -83,31 +86,31 @@ UInventoryItem* UItemManager::ItemAddToInventory(const EItemKind& ItemToAdd)
 
 void UItemManager::ItemRemoveFromInventory(const EItemKind& ItemToRemove)
 {
-    if (UItemList* Inventory = GetInventoryItemList())
+    if (UAdventureGameInstance *GameInstance = GetAdventureGameInstance())
     {
-        Inventory->RemoveItemKindFromInventory(ItemToRemove);
-        if (SourceItem && !Inventory->Contains(SourceItem->ItemKind)) ClearSourceItem();
-        if (TargetItem && !Inventory->Contains(TargetItem->ItemKind)) ClearTargetItem();
+        GameInstance->RemoveItemFromInventory(ItemToRemove);
+        if (SourceItem && !GameInstance->IsInInventory(SourceItem->ItemKind)) ClearSourceItem();
+        if (TargetItem && !GameInstance->IsInInventory(TargetItem->ItemKind)) ClearTargetItem();
     }
 }
 
 void UItemManager::ItemsRemoveFromInventory(const TSet<EItemKind>& ItemsToRemove)
 {
-    if (UItemList* Inventory = GetInventoryItemList())
+    if (UAdventureGameInstance *GameInstance = GetAdventureGameInstance())
     {
-        Inventory->RemoveItemKindsFromInventory(ItemsToRemove);
-        if (SourceItem && !Inventory->Contains(SourceItem->ItemKind)) ClearSourceItem();
-        if (TargetItem && !Inventory->Contains(TargetItem->ItemKind)) ClearTargetItem();
+        GameInstance->RemoveItemsFromInventory(ItemsToRemove);
+        if (SourceItem && !GameInstance->IsInInventory(SourceItem->ItemKind)) ClearSourceItem();
+        if (TargetItem && !GameInstance->IsInInventory(TargetItem->ItemKind)) ClearTargetItem();
     }
 }
 
-UItemList* UItemManager::GetInventoryItemList()
+UAdventureGameInstance* UItemManager::GetAdventureGameInstance()
 {
-    static TWeakObjectPtr<UItemList> CachedItemList;
-    if (UItemList *ItemList = CachedItemList.Get()) return ItemList;
+    static TWeakObjectPtr<UAdventureGameInstance> CachedAdventureGameInstance;
+    if (UAdventureGameInstance *AdventureGameInstance = CachedAdventureGameInstance.Get()) return AdventureGameInstance;
 
     UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
-    const UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
+    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
     if (!AdventureGameInstance)
     {
         // Could happen if loading of a save game is in progress
@@ -115,9 +118,8 @@ UItemList* UItemManager::GetInventoryItemList()
             __FUNCTION__, __LINE__);
         return nullptr;
     }
-    UItemList *ItemList = AdventureGameInstance->Inventory;
-    CachedItemList = ItemList;
-    return ItemList;
+    CachedAdventureGameInstance = AdventureGameInstance;
+    return AdventureGameInstance;
 }
 
 bool UItemManager::MaybeHandleInventoryItemClicked(UItemSlot* ItemSlot)
@@ -150,7 +152,7 @@ void UItemManager::MouseEnterInventoryItem(UItemSlot* ItemSlot)
             TargetItem = ItemSlot->InventoryItem;
         }
         CurrentItemSlot = ItemSlot;
-        UpdateInventoryTextDelegate.Broadcast();
+        UpdateInventoryText();
     }
 }
 

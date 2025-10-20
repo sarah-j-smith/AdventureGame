@@ -36,6 +36,9 @@ public:
 	void SetText(FText NewText);
 
 	UFUNCTION(BlueprintCallable)
+	void SetScore(FText NewText);
+
+	UFUNCTION(BlueprintCallable)
 	void HighlightText();
 
 	UFUNCTION(BlueprintCallable)

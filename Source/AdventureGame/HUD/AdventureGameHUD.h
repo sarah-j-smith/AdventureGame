@@ -16,6 +16,7 @@
 #include "AdventureGameHUD.generated.h"
 
 class USphereComponent;
+class AAdventureGameModeBase;
 
 /**
  * 
@@ -34,6 +35,8 @@ public:
 	void BindCommandHandlers(ACommandManager *CommandManager);
 
 	void BindInventoryHandlers(UAdventureGameInstance* AdventureGameInstance);
+
+	void BindScoreHandlers(AAdventureGameModeBase* AdventureGameMode);
 
 	/// Bindings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
@@ -59,6 +62,9 @@ public:
 
 	UFUNCTION()
 	void HandleInventoryChanged(EItemKind ItemKind, EItemDisposition Disposition);
+
+	UFUNCTION()
+	void HandleScoreChanged(int32 Score);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateInteractionTextEvent();
