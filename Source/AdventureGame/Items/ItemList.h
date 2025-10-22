@@ -25,6 +25,7 @@ class ADVENTUREGAME_API UItemList : public UObject
 {
     GENERATED_BODY()
     
+protected:
     /*
      * Use a Linked List here because the TArray throws exceptions
      * when you remove data from the middle of it due to the way it
@@ -78,6 +79,11 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UDataTable* InventoryDataTable;
 
+#if WITH_EDITORONLY_DATA
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Testing")
+    TSoftObjectPtr<UDataTable> InventoryDataTableTest;
+#endif
+    
     //////////////////////////////////
     ///
     /// ITEM REPORTING

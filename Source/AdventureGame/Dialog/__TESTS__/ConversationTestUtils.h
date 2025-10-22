@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 
-#include "PromptData.h"
-#include "ConversationData.h"
+#include "AdventureGame/Dialog/PromptData.h"
+#include "AdventureGame/Dialog/ConversationData.h"
 
 class MockDataTable : public UDataTable
 {

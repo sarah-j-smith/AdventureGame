@@ -57,6 +57,12 @@ public:
 	/// HOTSPOT PROPERTIES
 	///
 
+	/// Various tags for the state and past actions done on this hotspot.
+	/// For example can set "History.Triggered.LookAt" to enforce that a score increment
+	/// is only given once, the first time the item is looked at.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Scripting", meta = (Categories = "History"))
+	FGameplayTagContainer HistoryTags;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HotSpot")
 	USphereComponent* WalkToPoint;
 

@@ -14,6 +14,7 @@
 #include "ItemManager.h"
 #include "Puck.h"
 #include "TestBarkController.h"
+#include "AdventureGame/Gameplay/AdventureGameModeBase.h"
 
 #include "GameFramework/PawnMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -595,6 +596,10 @@ void ACommandManager::SetupHUD()
     if (UAdventureGameInstance *AdventureGameInstance = GetAdventureGameInstance())
     {
         AdventureGameHUD->BindInventoryHandlers(AdventureGameInstance);
+    }
+    if (AAdventureGameModeBase *GameMode = Cast<AAdventureGameModeBase>(UGameplayStatics::GetGameMode(this)))
+    {
+        AdventureGameHUD->BindScoreHandlers(GameMode);
     }
 }
 

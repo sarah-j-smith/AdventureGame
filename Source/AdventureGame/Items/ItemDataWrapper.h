@@ -22,7 +22,7 @@ struct ADVENTUREGAME_API FItemDataWrapper
     /// or Item this is attached to will cause the ItemDataAsset to be actioned,
     /// applying the <code>ScoreOnSuccess</code> and so on. 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ActiveVerb")
-    EVerbType ActiveVerb;
+    EVerbType ActiveVerb = EVerbType::TalkTo;
 
     /// Item data asset to activate on the given verb. This must be a <code>ItemDataAsset</code>
     /// <b>Instance</b>. An instance appears in the editor as a circle with a pie-slice shape

@@ -35,6 +35,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemHandling")
     FText Description = LOCTABLE("ItemStrings", "DefaultItemDescriptionText");
 
+    /// Various tags for the state and past actions done on this hotspot.
+    /// For example can set "History.Triggered.LookAt" to enforce that a score increment
+    /// is only given once, the first time the item is looked at.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scripting", meta = (Categories = "History"))
+    FGameplayTagContainer HistoryTags;
+
     /// Very short description to distinguish this thing from others of the same kind
     /// eg "Blunt red knife" - "Old tattered book". By default uses the
     /// `DefaultItemDescriptionText` value in the `ItemStrings` string table.

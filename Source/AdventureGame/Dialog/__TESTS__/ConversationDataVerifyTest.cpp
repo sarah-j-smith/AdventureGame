@@ -1,4 +1,4 @@
-#include "ConversationData.h"
+#include "AdventureGame/Dialog/ConversationData.h"
 #include "Misc/AutomationTest.h"
 
 #include "ConversationTestUtils.h"

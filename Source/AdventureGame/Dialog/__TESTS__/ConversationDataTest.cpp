@@ -1,4 +1,4 @@
-#include "HotSpotNPC.h"
+#include "AdventureGame/Dialog/HotSpotNPC.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(ConversationDataTest, "Dialog.ConversationDataTest",

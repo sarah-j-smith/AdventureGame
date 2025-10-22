@@ -16,6 +16,7 @@
 #include "../Items/InventoryItem.h"
 #include "../Items/ItemList.h"
 #include "../HotSpots/Door.h"
+#include "AdventureGame/Gameplay/AdventureGameModeBase.h"
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -44,12 +45,6 @@ void AAdventurePlayerController::BeginPlay()
 
     SetupCommandManager();
     SetupHUD();
-    Command->AddUIHandlers(AdventureHUDWidget);
-    AdventureHUDWidget->BindCommandHandlers(Command);
-    
-    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-    UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance);
-    AdventureGameInstance->OnLoadRoom();
     
     APawn* Pawn = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
@@ -118,6 +113,21 @@ void AAdventurePlayerController::OnLoadGameComplete(const FString& SlotName, con
 void AAdventurePlayerController::SetupHUD()
 {
     AdventureHUDWidget = UAdventureGameHUD::Create(this, AdventureHUDClass);
+    check(AdventureHUDWidget);
+    check(Command);
+    Command->AddUIHandlers(AdventureHUDWidget);
+    AdventureHUDWidget->BindCommandHandlers(Command);
+    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
+    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance))
+    {
+        /// Load the starting room
+        AdventureGameInstance->OnLoadRoom();
+        AdventureHUDWidget->BindInventoryHandlers(AdventureGameInstance);
+    }
+    if (AAdventureGameModeBase *GameMode = Cast<AAdventureGameModeBase>(UGameplayStatics::GetGameMode(this)))
+    {
+        AdventureHUDWidget->BindScoreHandlers(GameMode);
+    }
 }
 
 void AAdventurePlayerController::SetupAnimationDelegates()

@@ -1,8 +1,7 @@
 #include "ConversationTestUtils.h"
 
 
-#include "PromptData.h"
-#include "Misc/GeneratedTypeName.h"
+#include "AdventureGame/Dialog/PromptData.h"
 
 using CharData = const TCHAR*[3][3];
 CharData PromptText = {

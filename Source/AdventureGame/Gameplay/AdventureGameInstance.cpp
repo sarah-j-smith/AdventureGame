@@ -188,14 +188,6 @@ void UAdventureGameInstance::SetupRoom()
 	if (UAdventureGameHUD* HUD = GetHUD())
 	{
 		HUD->HideBlackScreen();
-		if (Inventory)
-		{
-			if (UAdventureGameHUD *Hud = GetHUD())
-			{
-				HUD->BindInventoryHandlers(this);
-				UE_LOG(LogAdventureGame, Verbose, TEXT("Added handler for inventory changed"));
-			}
-		}
 	}
 
 	if (ACommandManager *Command = GetCommandManager())

@@ -27,17 +27,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Score")
 	int32 ScoreOnSuccess;
 
+	/// Has the Success case been triggered before? Any other custom tags
+	/// needed for blueprint scripting with this item data.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Scripting", meta = (Categories = "History"))
+	FGameplayTagContainer HistoryTags;
+	
 	/// How to treat the source item when using the default implementation
 	/// of OnItemUseSuccess.
 	/// Article - nothing, Consumable - destroy,
 	/// Tool - create the ToolResultItem, Key - Unlock the target
-	/// @deprecated 
+	/// @deprecated Use <code>SourceItemTreatmentTags</code> instead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ItemAction")
 	EItemAssetType SourceItemAssetType;
 
 	/// How to treat the source item when using the default implementation
 	/// of OnItemUseSuccess.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ItemAction")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ItemAction", meta = (Categories = "Item.Treatment"))
 	FGameplayTagContainer SourceItemTreatmentTags;
 	
 	/// The <b>first</b> item required for the action to successfully initiate.
@@ -48,13 +53,13 @@ public:
 	/// of OnItemUseSuccess.
 	/// Article - nothing, Consumable - destroy,
 	/// Tool - create the ToolResultItem, Key - Unlock the target
-	/// @deprecated 
+	/// @deprecated  Use <code>TargetItemTreatmentTags</code> instead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ItemAction")
 	EItemAssetType TargetItemAssetType;
 
 	/// How to treat the target item when using the default implementation
 	/// of OnItemUseSuccess.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ItemAction")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ItemAction", meta = (Categories = "Item.Treatment"))
 	FGameplayTagContainer TargetItemTreatmentTags;
 	
 	/// The <b>second item</b> required for the action to successfully initiate, or null.

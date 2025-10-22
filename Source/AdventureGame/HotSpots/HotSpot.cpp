@@ -57,6 +57,7 @@ void AHotSpot::EndPlay(const EEndPlayReason::Type EndPlayReason)
 FGameplayTagContainer AHotSpot::GetTags() const
 {
 	FGameplayTagContainer Tags;
+	Tags.AppendTags(HistoryTags);
 	if (HotSpotHidden) Tags.AddTag(AdventureGameplayTags::HotSpot_Hidden);
 	return Tags;
 }
@@ -71,6 +72,7 @@ void AHotSpot::SetTags(const FGameplayTagContainer& Tags)
 	{
 		Show();
 	}
+	HistoryTags = Tags.Filter(AdventureGameplayTags::HistoryGameplayTags());
 }
 
 void AHotSpot::RegisterForSaveAndLoad()

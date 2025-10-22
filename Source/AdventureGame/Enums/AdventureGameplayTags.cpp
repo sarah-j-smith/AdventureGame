@@ -16,11 +16,41 @@ namespace AdventureGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(HotSpot_Hidden, "HotSpot.Hidden", "The entire HotSpot actor is hidden");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(HotSpot_SpriteHidden, "HotSpot.SpriteHidden", "The PickUp sprite is hidden");
 
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Succeeded_ItemData, "History.Succeeded.ItemData", "The item data success case was triggered");
+    
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_Give, "History.Triggered.Give", "The item or hotspot had the give verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_Open, "History.Triggered.Open", "The item or hotspot had the open verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_Close, "History.Triggered.Close", "The item or hotspot had the close verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_PickUp, "History.Triggered.PickUp", "The item or hotspot had the pick-up verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_LookAt, "History.Triggered.LookAt", "The item or hotspot had the look-at verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_TalkTo, "History.Triggered.TalkTo", "The item or hotspot had the talk-to verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_Use, "History.Triggered.Use", "The item or hotspot had the use verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_Push, "History.Triggered.Push", "The item or hotspot had the push verb used on it");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(History_Triggered_Pull, "History.Triggered.Pull", "The item or hotspot had the pull verb used on it");
+    
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Article, "Item.Treatment.Article", "Object that can be held, examined and given");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Consumable, "Item.Treatment.Consumable", "After being successfully used it is destroyed");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Tool, "Item.Treatment.Tool", "Can be used on another item to create a brand new item");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Item_Treatment_Key, "Item.Treatment.Key", "Can be used on a hotspot to lock or unlock it");
 
+    FGameplayTagContainer HistoryGameplayTags()
+    {
+        static FGameplayTagContainer Tags;
+        if (Tags.Num() > 0) return Tags;
+        FGameplayTagContainer HistoryTags;
+        HistoryTags.AddTagFast(History_Triggered_Give);
+        HistoryTags.AddTagFast(History_Triggered_Open);
+        HistoryTags.AddTagFast(History_Triggered_Close);
+        HistoryTags.AddTagFast(History_Triggered_PickUp);
+        HistoryTags.AddTagFast(History_Triggered_LookAt);
+        HistoryTags.AddTagFast(History_Triggered_TalkTo);
+        HistoryTags.AddTagFast(History_Triggered_Use);
+        HistoryTags.AddTagFast(History_Triggered_Push);
+        HistoryTags.AddTagFast(History_Triggered_Pull);
+        Tags.AppendTags(HistoryTags);
+        return HistoryTags;
+    };
+    
     void SetDoorState(EDoorState State, FGameplayTagContainer &Tags)
     {
         Tags.RemoveTag(AdventureGameplayTags::State_Closed);
