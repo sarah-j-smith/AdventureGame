@@ -50,8 +50,8 @@ protected:
     void AddItemToInventory(UInventoryItem* InventoryItem);
 
     /**
-    * Low-level helper that deletes the element from memory and invalidates
-    * any iterators. The @param Element will be an invalid pointer after this call.
+     * Low-level helper that deletes the element from the list and invalidates
+     * any iterators. The @param Element will be an invalid pointer after this call.
      * @param Element FInventoryList Element to delete from the list and from memory.
      */
     void DeleteElementFromInventory(FInventoryList* Element);
@@ -119,9 +119,13 @@ public:
     UFUNCTION(BlueprintCallable)
     UInventoryItem* AddItemToInventory(EItemKind ItemToAdd);
 
-    /// Removes the given item from the current players inventory of held
-    /// items. Destroys the `UInventoryItem` instance of the class
-    /// from the `InventoryDataTable` and deletes it in the inventory UI
+    /// Removes the given item from the linked list used to track the inventory,
+    /// and sends the <code>OnInventoryChanged</code> event which should be used
+    /// by the owning pointers to the item to release it. Note that the entries in
+    /// the linked list are not UObject owning pointers. The owning pointers is
+    /// UItemSlot's InventoryItem UPROPERTY.  Also the ItemManager's SourceItem
+    /// TargetItem hold references for as long as the player is choosing an action.
+    /// These must all be set to null after receiving the OnInventoryChanged signal.
     UFUNCTION(BlueprintCallable)
     void RemoveItemKindFromInventory(EItemKind ItemToRemove);
 

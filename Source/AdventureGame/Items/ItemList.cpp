@@ -87,13 +87,14 @@ void UItemList::RemoveItemKindsFromInventory(const TSet<EItemKind>& ItemsToRemov
 	if (IsEmpty()) return;
 	FInventoryList *Item = Inventory;
 	TSet RemovingItems(ItemsToRemove);
+	TArray<EItemKind> ItemsThatWereRemoved;
 	for (FInventoryList *Iterator = Inventory; Iterator; Iterator = Iterator->Next)
 	{
 		if (RemovingItems.Contains(Iterator->Element->ItemKind))
 		{
-			OnInventoryChanged.Broadcast(Identifier, Iterator->Element->ItemKind, EItemDisposition::Removed);
 			RemovingItems.Remove(Iterator->Element->ItemKind);
 			DeleteElementFromInventory(Iterator);
+			ItemsThatWereRemoved.Add(Iterator->Element->ItemKind);
 			if (RemovingItems.Num() == 0) break;			
 		}
 	}
@@ -101,6 +102,10 @@ void UItemList::RemoveItemKindsFromInventory(const TSet<EItemKind>& ItemsToRemov
 	{
 		UE_LOG(LogAdventureGame, Warning, TEXT("Failed to remove some items from Inventory - %s"),
 			*FItemKind::GetListDescription(ItemsToRemove.Array()));
+	}
+	for (const EItemKind ItemRemoved : ItemsThatWereRemoved)
+	{
+		OnInventoryChanged.Broadcast(Identifier, ItemRemoved, EItemDisposition::Removed);
 	}
 #if WITH_EDITOR
 	DumpInventoryToLog();
