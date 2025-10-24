@@ -71,6 +71,18 @@ void UInventoryUI::PopulateInventory(bool ScrollToLastAdded)
 	}
 }
 
+UItemSlot* UInventoryUI::GetFromInventory(EItemKind ItemKind) const
+{
+	for (UItemSlot* ItemSlot : InventorySlots)
+	{
+		if (ItemSlot && ItemSlot->InventoryItem && ItemSlot->InventoryItem->ItemKind == ItemKind)
+		{
+			return ItemSlot;
+		}
+	}
+	return nullptr;
+}
+
 void UInventoryUI::AddSlotsToArray()
 {
 	InventorySlots.Reset(8);

@@ -170,10 +170,11 @@ void UBarkText::LoadNextBarkRequest()
     BarkLines.Empty();
     CurrentBarkRequest->GetBarkLines(BarkLines);
     CurrentUID = CurrentBarkRequest->GetUID();
-    UE_LOG(LogAdventureGame, Warning, TEXT("LoadNextBarkRequest: %d - %s"), CurrentUID, *BarkLines[0].ToString());
+    UE_LOG(LogAdventureGame, Verbose, TEXT("LoadNextBarkRequest: %d - %s"), CurrentUID, *BarkLines[0].ToString());
     BarkPosition = CurrentBarkRequest->GetPosition();
     if (!IsValid(BarkPosition))
     {
+        UE_LOG(LogAdventureGame, Verbose, TEXT("BarkPosition Invalid - GetAdventureCharacter"));
         if (const AAdventureCharacter *AdventureCharacter = GetAdventureCharacter())
         {
             BarkPosition = AdventureCharacter->Sphere;
@@ -222,7 +223,7 @@ void UBarkText::AddQueuedBarkLine(EBarkRequestFinishedReason Reason)
         }
         else
         {
-            UE_LOG(LogAdventureGame, Warning, TEXT("AddQueuedBarkLine - request queue empty stop barking"));
+            UE_LOG(LogAdventureGame, Verbose, TEXT("AddQueuedBarkLine - request queue empty stop barking"));
             bIsBarking = false;
         }
     }

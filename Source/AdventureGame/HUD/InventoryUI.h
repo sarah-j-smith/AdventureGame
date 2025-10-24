@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ItemSlot.h"
+#include "AdventureGame/Enums/ItemKind.h"
 #include "Blueprint/UserWidget.h"
 #include "InventoryUI.generated.h"
 
@@ -36,7 +37,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Arrows")
 	void OnUpArrowButtonClicked();
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory Slots")
 	void PopulateInventory(bool ScrollToLastAdded = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory Slots")
+	UItemSlot *GetFromInventory(EItemKind ItemKind) const;
 
 	/// Row of inventory displayed in the top row of slots.
 	/// Will be zero unless there are more than 8 items in the inventory.
@@ -56,7 +61,8 @@ public:
 	///
 	/// INVENTORY SLOTS
 	///
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Slots")
 	TArray<UItemSlot *> InventorySlots;
 
 	void AddSlotsToArray();

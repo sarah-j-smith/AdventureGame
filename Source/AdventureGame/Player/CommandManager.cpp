@@ -686,6 +686,11 @@ void ACommandManager::AddUIHandlers(UAdventureGameHUD *AdventureGameHUD)
 
 void ACommandManager::HandleInventoryItemClicked(UItemSlot* ItemSlot)
 {
+    if (!ItemSlot)
+    {
+        UE_LOG(LogAdventureGame, Error, TEXT("HandleInventoryItemClicked: Item slot is NULL"));
+        return;
+    }
     if (!ItemSlot->HasItem)
     {
         // clicking an empty inventory slot clears everything out

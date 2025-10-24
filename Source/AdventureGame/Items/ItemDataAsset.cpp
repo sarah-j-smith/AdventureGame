@@ -18,7 +18,7 @@ void UItemDataAsset::OnItemGiveSuccess_Implementation()
     if (UItemManager *ItemManager = GetItemManager())
     {
         ItemManager->AddToScore(ScoreOnSuccess);
-        ItemManager->ItemRemoveFromInventory(SourceItem);
+        ItemManager->ItemRemoveFromInventoryAsync(SourceItem);
     }
     StartTimer();
 }
@@ -52,7 +52,7 @@ void UItemDataAsset::HandleSourceItem(const EItemAssetType ItemAssetType, bool &
     switch (ItemAssetType)
     {
     case EItemAssetType::Consumable:
-        ItemManager->ItemRemoveFromInventory(SourceItem);
+        ItemManager->ItemRemoveFromInventoryAsync(SourceItem);
         break;
     case EItemAssetType::Tool:
         ItemManager->ItemAddToInventory(ToolResultItem);
@@ -73,7 +73,7 @@ void UItemDataAsset::HandleTargetItem(const EItemAssetType ItemAssetType, bool& 
     switch (ItemAssetType)
     {
     case EItemAssetType::Consumable:
-        ItemManager->ItemRemoveFromInventory(TargetItem);
+        ItemManager->ItemRemoveFromInventoryAsync(TargetItem);
         break;
     default:
         break;

@@ -5,6 +5,7 @@
 #include "../AdventureGame.h"
 #include "../Constants.h"
 #include "ItemData.h"
+#include "Kismet/GameplayStatics.h"
 
 bool UItemList::Contains(EItemKind Item) const
 {
@@ -131,8 +132,28 @@ void UItemList::DumpInventoryToLog() const
 	}
 }
 
+void UItemList::RegisterWithGameInstance(UInventoryItem* InventoryItem)
+{
+	if (UGameInstance *GameInstance = UGameplayStatics::GetGameInstance(this))
+	{
+		GameInstance->RegisterReferencedObject(InventoryItem);
+	}
+}
+
+void UItemList::UnregisterFromGameInstance(UInventoryItem* InventoryItem)
+{
+	if (UGameInstance *GameInstance = UGameplayStatics::GetGameInstance(this))
+	{
+		GameInstance->UnregisterReferencedObject(InventoryItem);
+	}
+}
+
 void UItemList::AddItemToInventory(UInventoryItem* InventoryItem)
 {
+	if (UGameInstance *GameInstance = UGameplayStatics::GetGameInstance(this))
+	{
+		GameInstance->RegisterReferencedObject(InventoryItem);
+	}
 	FInventoryList *NewItem = new FInventoryList(InventoryItem);
 	if (Inventory)
 	{
@@ -151,6 +172,10 @@ void UItemList::AddItemToInventory(UInventoryItem* InventoryItem)
 
 void UItemList::DeleteElementFromInventory(FInventoryList* Element)
 {
+	if (UGameInstance *GameInstance = UGameplayStatics::GetGameInstance(this))
+	{
+		GameInstance->UnregisterReferencedObject(Element->Element);
+	}
 	if (!Element) return;
 	bool Deleted = false;
 	FInventoryList *Tmp = Inventory;

@@ -81,7 +81,7 @@ public:
 	float OverrideDisplayTime = INVALID_BARK_DELAY;
 	
 private:
-		
+
 	//////////////////////////////////
 	///
 	/// BARK CONTAINER

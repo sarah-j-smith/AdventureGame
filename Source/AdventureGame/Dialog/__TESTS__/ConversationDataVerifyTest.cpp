@@ -6,7 +6,7 @@
 // IMPLEMENT_SIMPLE_AUTOMATION_TEST(ConversationDataVerifyTest, "Dialog.ConversationDataVerifyTest",
 //                                  EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-IMPLEMENT_COMPLEX_AUTOMATION_TEST(ConversationDataVerifyTest, "Dialog.ConversationDataVerifyTest",
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(ConversationDataVerifyTest, "AdventureGame.Dialog.ConversationDataVerifyTest",
      EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 FConversationData GetDataForTestName(const FString& TestName)

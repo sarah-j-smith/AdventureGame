@@ -114,7 +114,7 @@ void UAdvBlueprintFunctionLibrary::RemoveFromInventory(const UObject* WorldConte
 {
     if (UItemManager *ItemManager = GetItemManager(WorldContextObject))
     {
-        ItemManager->ItemRemoveFromInventory(ItemToRemove);
+        ItemManager->ItemRemoveFromInventoryAsync(ItemToRemove);
     }
 }
 

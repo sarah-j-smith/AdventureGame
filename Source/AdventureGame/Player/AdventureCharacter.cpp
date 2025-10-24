@@ -186,7 +186,7 @@ void AAdventureCharacter::TeleportToLocation(FVector NewLocation)
 	if (PrevLocation.Z < MinZValue)
 	{
 		// Falling happens with increasingly negative z values.
-		UE_LOG(LogAdventureGame, Warning, TEXT("AAdventureCharacter::TeleportToLocation - %s"), *NewLocation.ToString());
+		UE_LOG(LogAdventureGame, Verbose, TEXT("AAdventureCharacter::TeleportToLocation - %s"), *NewLocation.ToString());
 	}
 
 	// in prod work around via forcing to MinZValue

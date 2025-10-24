@@ -1,7 +1,7 @@
 #include "AdventureGame/Dialog/HotSpotNPC.h"
 #include "Misc/AutomationTest.h"
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(ConversationDataTest, "Dialog.ConversationDataTest",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(ConversationDataTest, "AdventureGame.Dialog.ConversationDataTest",
                                   EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 #include "ConversationTestUtils.h"

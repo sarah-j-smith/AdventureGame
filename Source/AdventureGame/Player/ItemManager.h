@@ -26,6 +26,8 @@ class UItemManager : public UActorComponent
 {
     GENERATED_BODY()
 public:
+	UItemManager();
+	
 	//////////////////////////////////
 	///
 	/// SCORE
@@ -127,9 +129,15 @@ public:
 	void ItemRemoveFromInventory(const EItemKind &ItemToRemove);
 
 	void ItemsRemoveFromInventory(const TSet<EItemKind> &ItemsToRemove);
+	
+	void ItemRemoveFromInventoryAsync(const EItemKind &ItemToRemove);
+
+	void ItemsRemoveFromInventoryAsync(const TSet<EItemKind> &ItemsToRemove);
 
 private:
 	UAdventureGameInstance *GetAdventureGameInstance();
+
+	TSet<EItemKind> ItemsToRemove;
 	
 public:
 	/// Handle a mouse click on an item button.
@@ -143,4 +151,10 @@ public:
 	void PerformItemInteraction(EVerbType CurrentVerb);
 
 	void PerformItemAction(EVerbType CurrentVerb);
+
+	virtual void BeginPlay() override;
+	
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+							   FActorComponentTickFunction* ThisTickFunction) override;
 };

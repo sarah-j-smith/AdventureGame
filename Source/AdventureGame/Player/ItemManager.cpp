@@ -13,6 +13,13 @@
 
 #include "Kismet/GameplayStatics.h"
 
+UItemManager::UItemManager()
+    : SourceItem(nullptr)
+    , TargetItem(nullptr)
+{
+    PrimaryComponentTick.bCanEverTick = true;
+}
+
 void UItemManager::AddToScore(int32 ScoreIncrement)
 {
     AGameModeBase *GameMode = UGameplayStatics::GetGameMode(GetWorld());
@@ -102,6 +109,16 @@ void UItemManager::ItemsRemoveFromInventory(const TSet<EItemKind>& ItemsToRemove
         if (SourceItem && !GameInstance->IsInInventory(SourceItem->ItemKind)) ClearSourceItem();
         if (TargetItem && !GameInstance->IsInInventory(TargetItem->ItemKind)) ClearTargetItem();
     }
+}
+
+void UItemManager::ItemRemoveFromInventoryAsync(const EItemKind& ItemToRemoveNextTick)
+{
+    ItemsToRemove.Add(ItemToRemoveNextTick);
+}
+
+void UItemManager::ItemsRemoveFromInventoryAsync(const TSet<EItemKind>& ItemsToRemoveNextTick)
+{
+    ItemsToRemove.Append(ItemsToRemoveNextTick);
 }
 
 UAdventureGameInstance* UItemManager::GetAdventureGameInstance()
@@ -236,4 +253,22 @@ void UItemManager::PerformItemAction(EVerbType CurrentVerb)
                *VerbGetDescriptiveString(CurrentVerb).ToString())
     }
     UpdateInventoryText();
+}
+
+void UItemManager::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //
+}
+
+void UItemManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    if (ItemsToRemove.Num() > 0)
+    {
+        ItemsRemoveFromInventory(ItemsToRemove);
+        ItemsToRemove.Empty();
+    }
 }

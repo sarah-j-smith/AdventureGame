@@ -55,10 +55,10 @@ struct ADVENTUREGAME_API FPromptData: public FTableRowBase
         }
         if (PreviousIndex == Index - 1 && SubIndex == 0) return true;
         if (PreviousIndex == Index && PreviousSubIndex == SubIndex - 1) return true;
-        UE_LOG(LogAdventureGame, Warning,
+        UE_LOG(LogAdventureGame, Display,
             TEXT("Invalid index pair: - Index: %d - SubIndex: %d vs PreviousIndex: %d - PreviousSubIndex: %d"),
             Index, SubIndex, PreviousIndex, PreviousSubIndex);
-        UE_LOG(LogAdventureGame, Warning,
+        UE_LOG(LogAdventureGame, Display,
             TEXT("     Expected: [Index: %d - SubIndex: %d] or [Index: %d - SubIndex: %d]"),
             PreviousIndex + 1, 0, PreviousIndex, PreviousSubIndex + 1);
         return false;

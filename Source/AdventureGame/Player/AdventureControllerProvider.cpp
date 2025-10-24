@@ -3,6 +3,7 @@
 
 #include "AdventureControllerProvider.h"
 
+#include "AdventureCharacter.h"
 #include "AdventurePlayerController.h"
 #include "AdventureGame/AdventureGame.h"
 
@@ -40,17 +41,13 @@ AAdventureCharacter *IAdventureControllerProvider::GetAdventureCharacter()
         return AdventureController->PlayerCharacter;
     }
     // If there is NOT an AdventureController then its likely because we are in testing mode, in which
-    // case there is no AAdventurePlayerController at all. In that case an AAdventureCharacter reference
-    // is likely to be set on the Command Manager so try to return that, but if it fails log an error.
+    // case there is no AAdventurePlayerController at all. Search for AAdventureCharacter in the scene.
     if (const UObject* WorldContextObject = dynamic_cast<UObject*>(this))
     {
-        AActor* Actor = UGameplayStatics::GetActorOfClass(WorldContextObject, ACommandManager::StaticClass());
-        if (ACommandManager* CommandManager = Cast<ACommandManager>(Actor))
+        AActor* Actor = UGameplayStatics::GetActorOfClass(WorldContextObject, AAdventureCharacter::StaticClass());
+        if (AAdventureCharacter* AdventureCharacter = Cast<AAdventureCharacter>(Actor))
         {
-            if (CommandManager->PlayerCharacter)
-            {
-                return CommandManager->PlayerCharacter;
-            }
+            return AdventureCharacter;
         }
     }
         // Could happen if the level is being torn down or a loading of a save game is in progress

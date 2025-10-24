@@ -26,17 +26,26 @@ class ADVENTUREGAME_API UItemList : public UObject
     GENERATED_BODY()
     
 protected:
-    /*
+    /**
      * Use a Linked List here because the TArray throws exceptions
      * when you remove data from the middle of it due to the way it
      * tries to preserve the order of items, shuffling them up to
-     * cover removed items. The semantics of the Inventory are that it
+     * cover removed items.
+     *
+     * The semantics of the Inventory are that it
      * is an ordered list, not very long, and we often want to remove
      * items in the middle which Linked lists are great at. The list
      * is also pretty good for traversal to find items meeting a
-     * condition. Items are always added at the end. This is a little
+     * condition.
+     *
+     * Items are always added at the end. This is a little
      * expensive as we don't keep a tail pointer or backlinks. But its
      * still very fast even for dozens of items.
+     *
+     * One issue is that the TList::ElementType is a plain pointer
+     * to UInventoryItem which is not recognised by the UE GC. To
+     * make sure the item is retained, register it via
+     * UGameInstance::RegisterReferencedObject
      */
     typedef TList<UInventoryItem*> FInventoryList;
     typedef TArray<UInventoryItem*> FInventoryArray;
@@ -58,6 +67,10 @@ protected:
 
     /// Debugging tool.
     void DumpInventoryToLog() const;
+
+    void RegisterWithGameInstance(UInventoryItem* InventoryItem);
+
+    void UnregisterFromGameInstance(UInventoryItem* InventoryItem);
 
 public:
     DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnInventoryChangedSignature, FName /* Identifier */, EItemKind /* ItemKind */, EItemDisposition);
@@ -105,33 +118,39 @@ public:
 
     /**
     * Add the given item to the current players inventory of held
-    * items. Instantiates an `UInventoryItem` instance of the class
-    * from the `InventoryDataTable`. Caller should populate other fields
-    * including `AdventureController`. 
+    * items. Instantiates an <code>UInventoryItem</code> instance. The
+    * instance will be a sub-class, with the actual class read from the
+    * entry in the <b>InventoryDataTable</b>. 
     *
-    * At present only one instance of any `ItemKind` is assumed to exist in the inventory
-    * at a time. This might change in the future, but for now its not supported
-    * to have more than one of anything, although that is not enforced by this function.
+    * At present only one instance of any given <code>ItemKind</code> is
+    * allowed to exist in the inventory at a time. This might change, but
+    * for now its not supported to have more than one of anything.
     * 
-    * @param ItemToAdd EItemKind to create an InventoryItem instance of.
+    * @param ItemToAdd EItemKind to create an InventoryItem instance of. 
     * @return InventoryItem Created and added.
     */
     UFUNCTION(BlueprintCallable)
     UInventoryItem* AddItemToInventory(EItemKind ItemToAdd);
 
-    /// Removes the given item from the linked list used to track the inventory,
-    /// and sends the <code>OnInventoryChanged</code> event which should be used
-    /// by the owning pointers to the item to release it. Note that the entries in
-    /// the linked list are not UObject owning pointers. The owning pointers is
-    /// UItemSlot's InventoryItem UPROPERTY.  Also the ItemManager's SourceItem
-    /// TargetItem hold references for as long as the player is choosing an action.
-    /// These must all be set to null after receiving the OnInventoryChanged signal.
+    /**
+     * Removes the given item from the linked list used to track the inventory,
+     * and sends the <code>OnInventoryChanged</code> event which should be used
+     * by the owning pointers to the item to release it. Note that the entries in
+     * the linked list are not UObject owning pointers. The owning pointers is
+     * UItemSlot's InventoryItem UPROPERTY.  Also the ItemManager's SourceItem
+     * TargetItem hold references for as long as the player is choosing an action.
+     * These must all be set to null after receiving the OnInventoryChanged signal. 
+     *  @param ItemToRemove EItemKind to remove an InventoryItem instance of.
+     */
     UFUNCTION(BlueprintCallable)
     void RemoveItemKindFromInventory(EItemKind ItemToRemove);
 
-    /// Removes the given items from the current players inventory of held
-    /// items. Destroys the `UInventoryItem` instances of the class
-    /// from the `InventoryDataTable` and deletes them in the inventory UI
+    /**
+     * Removes the given items from the current players inventory of held
+     * items. Destroys the `UInventoryItem` instances of the class
+     * from the `InventoryDataTable` and deletes them in the inventory UI
+     * @param ItemsToRemove EItemKind set to remove an InventoryItem instances of.
+     */
     UFUNCTION(BlueprintCallable)
     void RemoveItemKindsFromInventory(const TSet<EItemKind>& ItemsToRemove);
 

@@ -6,7 +6,7 @@
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
 
-IMPLEMENT_COMPLEX_AUTOMATION_TEST(ItemListTest, "Items.ItemListTest",
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(ItemListTest, "AdventureGame.Items.ItemListTest",
                                   EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 void ItemListTest::GetTests(TArray<FString>& OutBeautifiedNames, TArray<FString>& OutTestCommands) const

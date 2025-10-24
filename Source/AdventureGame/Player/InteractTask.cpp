@@ -25,7 +25,7 @@ UInteractTask* UInteractTask::DoInteractTask(const UObject* WorldContextObject, 
 	BlueprintNode->SetInteractionType(Interaction);
 	BlueprintNode->SetTimeDirection(TimeDirection);
 
-	UE_LOG(LogAdventureGame, Log, TEXT("UInteractTask created"));
+	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("UInteractTask created"));
 	
 	// Register with the game instance to avoid being garbage collected
 	BlueprintNode->RegisterWithGameInstance(WorldContextObject);
@@ -46,7 +46,26 @@ void UInteractTask::Activate()
 {
 	Super::Activate();
 
-	UE_LOG(LogAdventureGame, Log, TEXT("UInteractTask Activate - %s"), *(InteractionGetDescriptiveString(Interaction)));
+	AAdventurePlayerController *AdventurePlayerController = GetAdventureController();
+
+	if (!AdventurePlayerController)
+	{
+		UE_LOG(LogAdventureGame, Log, TEXT("UInteractTask::Activate - no adventure controller, using fake; no interact done"));
+		if (UWorld *World = GetWorld())
+		{
+			World->GetTimerManager().SetTimer(
+				FakeInteractTimer, this,
+				&UInteractTask::FakeInteractTimerTimeout,
+				FakeInteractTime, false);
+		}
+		else
+		{
+			FakeInteractTimerTimeout();
+		}
+		return;
+	}
+
+	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("UInteractTask Activate - %s"), *(InteractionGetDescriptiveString(Interaction)));
 	InteractionWasCompleted = Interaction;
 	switch (Interaction)
 	{
@@ -63,17 +82,18 @@ void UInteractTask::Activate()
 		TurnLeft();
 		break;
 	case EInteractionType::TurnRight:
-		UE_LOG(LogAdventureGame, Warning, TEXT("TURN RIGHT"));
 		TurnRight();
 	case EInteractionType::None:
 		break;
 	default:
 		break;
 	}
-	if (AAdventurePlayerController *AdventurePlayerController = GetAdventureController())
-	{
-		AdventurePlayerController->EndAction.AddUObject(this, &UInteractTask::InteractionCompleted);
-	}
+	AdventurePlayerController->EndAction.AddUObject(this, &UInteractTask::InteractionCompleted);
+}
+
+void UInteractTask::FakeInteractTimerTimeout()
+{
+	InteractionCompleted(Interaction, MyUID, true);
 }
 
 AAdventurePlayerController* UInteractTask::GetAdventureController() const
@@ -111,7 +131,6 @@ void UInteractTask::TurnRight()
 {
 	if (AAdventurePlayerController *AdventurePlayerController = GetAdventureController())
 	{
-		UE_LOG(LogAdventureGame, Warning, TEXT("calling adv controller TURN RIGHT"));
 		AdventurePlayerController->PlayerTurnRight(MyUID, TimeDirection);
 	}
 }
@@ -140,7 +159,7 @@ void UInteractTask::InteractionCompleted(EInteractionType Interaction, int32 UID
 	}
 	else
 	{
-		UE_LOG(LogAdventureGame, Verbose, TEXT("Ignoring task completion message UID: %d - Interaction: %s"),
+		UE_LOG(LogAdventureGame, Log, TEXT("Ignoring task completion message UID: %d - Interaction: %s"),
 			UID, *(InteractionGetDescriptiveString(Interaction)));
 	}
 }

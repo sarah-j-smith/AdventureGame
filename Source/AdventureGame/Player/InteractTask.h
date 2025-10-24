@@ -3,7 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../Enums/InteractionType.h"
+
+#include "AdventureGame/Enums/InteractionType.h"
+
+#include "Engine/TimerHandle.h"
 #include "Kismet/BlueprintAsyncActionBase.h"
 #include "InteractTask.generated.h"
 
@@ -12,6 +15,7 @@ class AAdventurePlayerController;
 /// https://unrealcommunity.wiki/creating-asynchronous-blueprint-nodes-ctnmtj0q
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractOutputPin);
+
 
 /**
  * Manage player asynchronous actions.
@@ -47,8 +51,15 @@ public:
 	EInteractionType InteractionWasCompleted = EInteractionType::None;
 
 private:
+	FTimerHandle FakeInteractTimer;
+	float FakeInteractTime = 1.0f;
+
+	UFUNCTION()
+	void FakeInteractTimerTimeout();
+	
 	UPROPERTY()
 	const UObject *WorldContextObject;
+	
 	EInteractionType Interaction;
 	EInteractTimeDirection TimeDirection;
 	int32 MyUID;
@@ -61,6 +72,5 @@ private:
 
 	UFUNCTION()
 	void InteractionCompleted(EInteractionType Interaction, int32 UID, bool bSuccess);
-	
 	AAdventurePlayerController* GetAdventureController() const;
 };
