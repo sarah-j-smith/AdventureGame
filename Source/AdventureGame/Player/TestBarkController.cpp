@@ -28,3 +28,20 @@ void UTestBarkController::ClearBark()
     ShouldInterruptAction = false;
     BarkRequests.Empty();
 }
+
+TArray<FString> UTestBarkController::GetBarkRequests()
+{
+    TArray<FString> Requests;
+    for (FBarkRequest* Request : BarkRequests)
+    {
+        TArray<FText> BarkLines;
+        Request->GetBarkLines(BarkLines);
+        FString BarkTextConcatenated = "";
+        for (FText& BarkText : BarkLines)
+        {
+            BarkTextConcatenated += BarkText.ToString();
+        }
+        Requests.Add(BarkTextConcatenated);
+    }
+    return Requests;
+}

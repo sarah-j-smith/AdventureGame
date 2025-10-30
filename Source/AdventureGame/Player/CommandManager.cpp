@@ -48,15 +48,7 @@ void ACommandManager::BeginPlay()
     Super::BeginPlay();
 
     ConnectToMoveCompletedDelegate();
-    if (bIsTesting && !bDisableHUD && AdventureGameHUD == nullptr)
-    {
-        SetupHUD();
-    }
-    if (bIsTesting && bDisablePlayerBarking)
-    {
-        PlayerBarkManager->DestroyComponent();
-        TestBarkController = CreateDefaultSubobject<UTestBarkController>(TEXT("TestBarkController"));
-    }
+    SetupHUD();
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
@@ -136,7 +128,7 @@ void ACommandManager::HandlePointAndClickInput()
     InteractionNotifier->NotifyUserInteraction();
 
     AAdventurePlayerController* AdventurePlayerController = GetAdventurePlayerController();
-    if (IsInputLocked() || !AdventurePlayerController || AdventurePlayerController->IsMouseOverUI()) return;
+    if (IsInputLocked() || !AdventurePlayerController) return;
 
     if (AHotSpot* HotSpot = AdventurePlayerController->HotSpotClicked())
     {
@@ -570,29 +562,11 @@ void ACommandManager::StopAIMovement()
 
 void ACommandManager::ConnectToPlayerHUD(UAdventureGameHUD* AdventureGameHUD)
 {
-    AdventureGameHUD->BindCommandHandlers(this);
-    AdventureGameHUD->BlackScreen->SetVisibility(ESlateVisibility::Hidden);
-}
+    if (bDisableHUDUpdates) return;
 
-void ACommandManager::SetupHUD()
-{
-    /////
-    //// TESTING
-    ////
-    //// THIS FUNCTION IS FOR TESTING ONLY - IT EXISTS TO HELP VISUALISE TEST OUTPUT
-    ///
-    check(bIsTesting);
-    check(!bDisableHUDUpdates);
-    check(!bDisableHUD);
-    APlayerController *PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-    AdventureGameHUD = UAdventureGameHUD::Create(PlayerController, AdventureHUDClass);
-    AdventureGameHUD->AddToViewport();
-    ConnectToPlayerHUD(AdventureGameHUD);
-    if (PlayerBarkManager && IsValid(PlayerBarkManager))
-    {
-        PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
-        AdventureGameHUD->Bark->OverrideDisplayTime = 1.0f;
-    }
+    AdventureGameHUD->BindNotifierHandlers(InteractionNotifier);
+    AdventureGameHUD->BindCommandHandlers(this);
+
     if (UAdventureGameInstance *AdventureGameInstance = GetAdventureGameInstance())
     {
         AdventureGameHUD->BindInventoryHandlers(AdventureGameInstance);
@@ -600,6 +574,41 @@ void ACommandManager::SetupHUD()
     if (AAdventureGameModeBase *GameMode = Cast<AAdventureGameModeBase>(UGameplayStatics::GetGameMode(this)))
     {
         AdventureGameHUD->BindScoreHandlers(GameMode);
+    }
+}
+
+void ACommandManager::AddUIHandlers(UAdventureGameHUD *AdventureGameHUD)
+{
+    if (!bDisableHUD) AdventureGameHUD->VerbsUI->OnVerbChanged.BindDynamic(this, &ACommandManager::AssignVerb);
+}
+
+void ACommandManager::SetupHUD()
+{
+    if (bDisableHUD) return;
+
+    // Create the HUD and put it on the screen
+    APlayerController *PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+    AdventureGameHUD = UAdventureGameHUD::Create(PlayerController, AdventureHUDClass);
+    AdventureGameHUD->AddToViewport();
+    AdventureGameHUD->BlackScreen->SetVisibility(ESlateVisibility::Hidden);
+    
+    // Send button presses from the HUD to the Command Manager
+    AddUIHandlers(AdventureGameHUD);
+
+    // Send player commands & game state changes to the HUD
+    ConnectToPlayerHUD(AdventureGameHUD);
+
+    if (!bDisablePlayerBarking) PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
+    if (bUseTestBarkController)
+    {
+        PlayerBarkManager->DestroyComponent();
+        PlayerBarkManager = nullptr;
+        TestBarkController = CreateDefaultSubobject<UTestBarkController>(TEXT("TestBarkController"));
+    }
+    if (PlayerBarkManager && IsValid(PlayerBarkManager))
+    {
+        PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
+        if (bIsTesting) AdventureGameHUD->Bark->OverrideDisplayTime = 1.0f;
     }
 }
 
@@ -678,12 +687,6 @@ void ACommandManager::AddInputHandlers(APuck* Puck)
     Puck->TouchInputDelegate.AddUObject(this, &ACommandManager::HandleTouchInput);
 }
 
-void ACommandManager::AddUIHandlers(UAdventureGameHUD *AdventureGameHUD)
-{
-    if (!bDisableHUD) AdventureGameHUD->VerbsUI->OnVerbChanged.BindDynamic(this, &ACommandManager::AssignVerb);
-    if (!bDisablePlayerBarking) PlayerBarkManager->SetAdventureGameHUD(AdventureGameHUD);
-}
-
 void ACommandManager::HandleInventoryItemClicked(UItemSlot* ItemSlot)
 {
     if (!ItemSlot)
@@ -730,6 +733,8 @@ void ACommandManager::HandleInventoryItemClicked(UItemSlot* ItemSlot)
             if (!bDisableHUDUpdates) BeginAction.Broadcast();
         }
     default:
-        UE_LOG(LogAdventureGame, Warning, TEXT("Ignoring inventory click"));
+        UE_LOG(LogAdventureGame, Display, TEXT("Ignoring inventory click on %s - command is: %s"),
+            *(ItemSlot->InventoryItem->ShortDescription.ToString()),
+            *UEnum::GetValueAsString(CurrentCommand));
     }
 }

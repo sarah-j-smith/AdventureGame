@@ -85,9 +85,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "EventHandlers")
     void AddInputHandlers(APuck* Puck);
 
-    UFUNCTION(BlueprintCallable, Category = "Actions")
-    void AddUIHandlers(UAdventureGameHUD* AdventureGameHUD);
-
     UFUNCTION(BlueprintCallable, Category = "EventHandlers")
     void HandleTouchInput();
 
@@ -234,10 +231,17 @@ public:
     ///
     ///
 
+    /// Bind button handlers so if the verbs are clicked the command manager can
+    /// track the current command and verb chosen
+    /// @param AdventureGameHUD HUD that has the buttons to get messages from
+    UFUNCTION(BlueprintCallable, Category = "Actions")
+    void AddUIHandlers(UAdventureGameHUD* AdventureGameHUD);
+    
+    /// Bind update handlers so changes in the game state - such as inventory
+    /// or score - update the HUD display
+    /// @param AdventureGameHUD HUD that has the display to send messages to
     void ConnectToPlayerHUD(UAdventureGameHUD* AdventureGameHUD);
-
-    /// HUD that is only used in testing. The HUD is normally owned
-    /// by the Adventure Player Controller.
+    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD")
     UAdventureGameHUD* AdventureGameHUD;
 

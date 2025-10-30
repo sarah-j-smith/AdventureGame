@@ -100,6 +100,20 @@ bool UAdventureGameInstance::IsInInventory(const EItemKind& ItemToCheck) const
 	return (Inventory && Inventory->Contains(ItemToCheck));
 }
 
+UInventoryItem* UAdventureGameInstance::GetItemFromInventory(const EItemKind& ItemToCheck)
+{
+	if (Inventory && Inventory->Contains(ItemToCheck))
+	{
+		TArray<UInventoryItem*> Items;
+		Inventory->GetInventoryItemsArray(Items);
+		for (UInventoryItem* Item : Items)
+		{
+			if (Item->ItemKind == ItemToCheck) return Item;
+		}
+	}
+	return nullptr;
+}
+
 void UAdventureGameInstance::GetInventoryItems(TArray<UInventoryItem*>& Items)
 {
 	if (Inventory) Inventory->GetInventoryItemsArray(Items);

@@ -192,35 +192,6 @@ public:
 	APawn *SetupPuck(AAdventureCharacter *PlayerCharacter);
 
 	void SetupAIController(APawn *AttachToPawn);
-	
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UAdventureGameHUD> AdventureHUDClass;
-
-	void SetupHUD();
 
 	void SetupAnimationDelegates();
-	
-	//////////////////////////////////
-	///
-	/// HUD WIDGET MANAGEMENT
-	/// 
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UAdventureGameHUD *AdventureHUDWidget;
-
-	bool IsMouseOverUI() const
-	{
-		return bIsMouseOverUI;
-	}
-
-	void SetMouseOverUI(bool IsMouseOverUI)
-	{
-		if (IsMouseOverUI == this->bIsMouseOverUI) return;
-		UpdateMouseOverUI(IsMouseOverUI);
-	}
-	
-private:
-	bool bIsMouseOverUI = false;
-
-	void UpdateMouseOverUI(bool NewMouseIsOverUI);
 };

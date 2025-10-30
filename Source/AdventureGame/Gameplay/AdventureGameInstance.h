@@ -74,6 +74,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	bool IsInInventory(const EItemKind &ItemToCheck) const;
 
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	UInventoryItem* GetItemFromInventory(const EItemKind &ItemToCheck);
+
 	void GetInventoryItems(TArray<UInventoryItem*> &Items);
 
 	int GetInventoryItemCount() const;

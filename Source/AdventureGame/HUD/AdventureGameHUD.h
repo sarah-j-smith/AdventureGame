@@ -15,8 +15,10 @@
 #include "Components/WidgetSwitcher.h"
 #include "AdventureGameHUD.generated.h"
 
+class UAdventureGameInstance;
 class USphereComponent;
 class AAdventureGameModeBase;
+class UInteractionNotifier;
 
 /**
  * 
@@ -32,11 +34,19 @@ public:
 
 	static UAdventureGameHUD *Create(APlayerController *PlayerController, TSubclassOf<UAdventureGameHUD> AdventureHUDClass);
 
+	/// Subscribe to messages for command & action updates to show in the interaction display.
 	void BindCommandHandlers(ACommandManager *CommandManager);
 
+	/// Subscribe to messages for changes in the player inventory to show in the inventory UI
 	void BindInventoryHandlers(UAdventureGameInstance* AdventureGameInstance);
 
+	/// Subscribe to messages for changes in the player score to show in the score UI
 	void BindScoreHandlers(AAdventureGameModeBase* AdventureGameMode);
+
+	/// Subscribe to messages for commands from the player, used to open or close
+	/// the conversation UI, or signal that a UI interaction happened to dismiss the
+	/// current bark or NPC conversation
+	void BindNotifierHandlers(UInteractionNotifier* Notifier);
 
 	/// Bindings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))

@@ -8,7 +8,8 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryUI.generated.h"
 
-class UAdventureGameInstance;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryUIChanged);
+
 /**
  * 
  */
@@ -17,6 +18,9 @@ class ADVENTUREGAME_API UInventoryUI : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+
+	UPROPERTY(BlueprintAssignable)
+	FInventoryUIChanged InventoryUIChanged;
 	
 	virtual void NativeOnInitialized() override;
 	

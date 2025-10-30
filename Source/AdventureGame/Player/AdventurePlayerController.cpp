@@ -43,8 +43,8 @@ void AAdventurePlayerController::BeginPlay()
     check(PlayerCharacter);
     SetupAnimationDelegates();
 
+    /// Set up commands and the HUD
     SetupCommandManager();
-    SetupHUD();
     
     APawn* Pawn = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
@@ -52,6 +52,12 @@ void AAdventurePlayerController::BeginPlay()
 
     SaveGameToSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnSaveGameComplete);
     LoadGameFromSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnLoadGameComplete);
+
+    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(UGameplayStatics::GetGameInstance(this)))
+    {
+        /// Load the starting room
+        AdventureGameInstance->OnLoadRoom();
+    }
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("<<<< BeginPlay: AAdventurePlayerController"));
 }
@@ -110,35 +116,9 @@ void AAdventurePlayerController::OnLoadGameComplete(const FString& SlotName, con
     Command->SetInputLocked(false);
 }
 
-void AAdventurePlayerController::SetupHUD()
-{
-    AdventureHUDWidget = UAdventureGameHUD::Create(this, AdventureHUDClass);
-    check(AdventureHUDWidget);
-    check(Command);
-    Command->AddUIHandlers(AdventureHUDWidget);
-    AdventureHUDWidget->BindCommandHandlers(Command);
-    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GameInstance))
-    {
-        /// Load the starting room
-        AdventureGameInstance->OnLoadRoom();
-        AdventureHUDWidget->BindInventoryHandlers(AdventureGameInstance);
-    }
-    if (AAdventureGameModeBase *GameMode = Cast<AAdventureGameModeBase>(UGameplayStatics::GetGameMode(this)))
-    {
-        AdventureHUDWidget->BindScoreHandlers(GameMode);
-    }
-}
-
 void AAdventurePlayerController::SetupAnimationDelegates()
 {
     PlayerCharacter->AnimationCompleteDelegate.AddDynamic(this, &AAdventurePlayerController::OnPlayerAnimationComplete);
-}
-
-void AAdventurePlayerController::UpdateMouseOverUI(bool NewMouseIsOverUI)
-{
-    this->bIsMouseOverUI = NewMouseIsOverUI;
-    Command->UpdateMouseOverUI(NewMouseIsOverUI);
 }
 
 void AAdventurePlayerController::SetupCommandManager()

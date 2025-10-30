@@ -69,6 +69,7 @@ void UInventoryUI::PopulateInventory(bool ScrollToLastAdded)
 			InventorySlots[SlotIndex]->RemoveItem();
 		}
 	}
+	InventoryUIChanged.Broadcast();
 }
 
 UItemSlot* UInventoryUI::GetFromInventory(EItemKind ItemKind) const

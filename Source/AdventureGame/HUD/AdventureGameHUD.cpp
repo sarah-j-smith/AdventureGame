@@ -46,32 +46,15 @@ UAdventureGameHUD* UAdventureGameHUD::Create(APlayerController *PlayerController
 
 void UAdventureGameHUD::BindCommandHandlers(ACommandManager *CommandManager)
 {
-    if (CommandManager)
+    check(CommandManager);
+
+    CommandManager->BeginAction.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
+    CommandManager->UpdateInteractionTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInteractionTextEvent);
+    CommandManager->InterruptAction.AddUniqueDynamic(this, &UAdventureGameHUD::InterruptActionEvent);
+    
+    if (UItemManager *ItemManager = CommandManager->ItemManager)
     {
-        CommandManager->BeginAction.AddUObject(this, &UAdventureGameHUD::BeginActionEvent);
-        CommandManager->UpdateInteractionTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInteractionTextEvent);
-        CommandManager->InterruptAction.AddUniqueDynamic(this, &UAdventureGameHUD::InterruptActionEvent);
-        UE_LOG(LogAdventureGame, Display, TEXT("UAdventureGameHUD::BindCommandHandlers succeeded"));
-        if (UInteractionNotifier *Notifier = CommandManager->InteractionNotifier)
-        {
-            Notifier->UserInteraction.AddUObject(this, &UAdventureGameHUD::OnUserInteracted);
-            Notifier->PromptListOpenRequest.AddUObject(this, &UAdventureGameHUD::ShowPromptList);
-            Notifier->PromptListCloseRequest.AddUObject(this, &UAdventureGameHUD::HidePromptList);
-            UE_LOG(LogAdventureGame, Display, TEXT("UserInteraction & PromptList bind succeeded"));
-        }
-        if (UItemManager *ItemManager = CommandManager->ItemManager)
-        {
-            ItemManager->UpdateInventoryTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInventoryTextEvent);
-            UE_LOG(LogAdventureGame, Display, TEXT("UpdateInventoryTextDelegate bind succeeded"));
-        }
-        else
-        {
-            UE_LOG(LogAdventureGame, Warning, TEXT("Null CommandManager in BindCommandHandlers."))
-        }
-    }
-    else
-    {
-        UE_LOG(LogAdventureGame, Warning, TEXT("Null CommandManager in BindCommandHandlers."))
+        ItemManager->UpdateInventoryTextDelegate.AddUObject(this, &UAdventureGameHUD::UpdateInventoryTextEvent);
     }
 }
 
@@ -83,6 +66,13 @@ void UAdventureGameHUD::BindInventoryHandlers(UAdventureGameInstance* AdventureG
 void UAdventureGameHUD::BindScoreHandlers(AAdventureGameModeBase *AdventureGameMode)
 {
     AdventureGameMode->ScoreDelegate.AddUniqueDynamic(this, &UAdventureGameHUD::HandleScoreChanged);
+}
+
+void UAdventureGameHUD::BindNotifierHandlers(UInteractionNotifier* Notifier)
+{
+    Notifier->UserInteraction.AddUObject(this, &UAdventureGameHUD::OnUserInteracted);
+    Notifier->PromptListOpenRequest.AddUObject(this, &UAdventureGameHUD::ShowPromptList);
+    Notifier->PromptListCloseRequest.AddUObject(this, &UAdventureGameHUD::HidePromptList);
 }
 
 void UAdventureGameHUD::ShowBlackScreen()
