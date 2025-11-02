@@ -590,7 +590,7 @@ void ACommandManager::SetupHUD()
     APlayerController *PlayerController = UGameplayStatics::GetPlayerController(this, 0);
     AdventureGameHUD = UAdventureGameHUD::Create(PlayerController, AdventureHUDClass);
     AdventureGameHUD->AddToViewport();
-    AdventureGameHUD->BlackScreen->SetVisibility(ESlateVisibility::Hidden);
+    AdventureGameHUD->ShowBlackScreen(); // Hide the game while its being loaded
     
     // Send button presses from the HUD to the Command Manager
     AddUIHandlers(AdventureGameHUD);
