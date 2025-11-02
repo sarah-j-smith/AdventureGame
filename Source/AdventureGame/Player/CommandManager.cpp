@@ -14,6 +14,7 @@
 #include "ItemManager.h"
 #include "Puck.h"
 #include "TestBarkController.h"
+#include "AdventureGame/Gameplay/AdventureGameMode.h"
 #include "AdventureGame/Gameplay/AdventureGameModeBase.h"
 
 #include "GameFramework/PawnMovementComponent.h"
@@ -49,6 +50,7 @@ void ACommandManager::BeginPlay()
 
     ConnectToMoveCompletedDelegate();
     SetupHUD();
+    SetupModes();
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
@@ -392,14 +394,12 @@ void ACommandManager::WalkToLocation(const FVector& Location)
     StopAIMovement();
     if (AIStatus != EAIStatus::Idle) return;
     TargetLocationForAI = Location;
-
-#if WITH_EDITOR
+    
     if (bTeleportInsteadOfWalk)
     {
         TeleportToLocation(Location);
         return;
     }
-#endif
 
     if (AAdventureAIController* AI = GetAIController())
     {
@@ -557,6 +557,15 @@ void ACommandManager::StopAIMovement()
         AI->StopMovement();
         PlayerCharacter->GetMovementComponent()->StopActiveMovement();
         AIStatus = EAIStatus::Idle;
+    }
+}
+
+void ACommandManager::SetupModes()
+{
+    if (AAdventureGameMode* GameMode = Cast<AAdventureGameMode>(UGameplayStatics::GetGameMode(this)))
+    {
+        UE_LOG(LogAdventureGame, Warning, TEXT("SetupModes - Teleport instead of walk: %s"), (bTeleportInsteadOfWalk ? TEXT("true") : TEXT("false")));
+        bTeleportInsteadOfWalk = GameMode->bTeleportInsteadOfWalk;
     }
 }
 

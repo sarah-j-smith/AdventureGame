@@ -214,7 +214,7 @@ public:
     UFUNCTION()
     void HandleMovementComplete();
 
-    UPROPERTY(BlueprintReadWrite, Category="PlayerCharacterAI")
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Movement")
     FVector TargetLocationForAI = FVector::ZeroVector;
 
     void ClearCurrentPath();
@@ -224,6 +224,16 @@ public:
     void SetVerbAndCommandFromHotSpot(AHotSpot* HotSpot);
 
     void StopAIMovement();
+
+    void SetupModes();
+    
+    /// A switch to teleport to new locations in the game instead using AI to
+    /// walk there over the nav graph. Can be used with non-AI / non-nav mesh
+    /// movement like an empty or invisible character. Also useful for testing.
+    /// In a game set this on the AdventureGameMode, as that setting will
+    /// override this.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    bool bTeleportInsteadOfWalk = false;
 
     //////////////////////////////////
     ///
@@ -380,11 +390,6 @@ public:
     /// A switch to turn off sending update display events to the HUD / UI.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TestingOnly")
     bool bDisableHUDUpdates = false;
-
-    /// A switch to teleport to new locations in the game instead using AI to
-    /// walk there over the nav graph. Only useful in testing.
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TestingOnly")
-    bool bTeleportInsteadOfWalk = false;
 
     /// If true use a stub to implement <code>Bark</code> and <code>BarkAndEnd</code>.
     /// The stub simply stores the requested barks for use in tests. If false try to

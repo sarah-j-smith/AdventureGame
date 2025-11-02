@@ -244,6 +244,13 @@ private:
 	// have Permanently Loaded set to true in the levels window.
 
 	/// Load up the room specified by the current door
+	/// Currently this uses streaming levels, which means that the level is never
+	/// truly unloaded. There's a persistent level underlying each room, which is
+	/// there all the time. This means that the WorldSettings and in particular
+	/// the game mode is fixed, in the whole game. To allow for larger games with
+	/// more distinct different areas of rooms, we might need to add regular
+	/// OpenLevel type loading, which is a long blocking call that completely
+	/// unloads the previous level and loads the new one off disk. 
 	void LoadRoom();
 
 	/// Load up the room specified by the starting door
