@@ -6,7 +6,7 @@
 
 #include "BarkRequest.h"
 #include "Blueprint/UserWidget.h"
-#include "../Constants.h"
+#include "AdventureGame/Constants.h"
 #include "AdventureGame/Enums/BarkRequestFinishReason.h"
 #include "AdventureGame/Player/AdventureControllerProvider.h"
 

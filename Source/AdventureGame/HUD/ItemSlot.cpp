@@ -3,8 +3,8 @@
 
 #include "ItemSlot.h"
 
-#include "../Player/AdventurePlayerController.h"
-#include "../Items/InventoryItem.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
+#include "AdventureGame/Items/InventoryItem.h"
 #include "AdventureGame/Player/ItemManager.h"
 #include "Kismet/GameplayStatics.h"
 

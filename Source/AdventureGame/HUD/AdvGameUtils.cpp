@@ -1,8 +1,8 @@
 #include "AdvGameUtils.h"
 
-#include "../Constants.h"
-#include "../HotSpots/HotSpot.h"
-#include "../Items/InventoryItem.h"
+#include "AdventureGame/Constants.h"
+#include "AdventureGame/HotSpots/HotSpot.h"
+#include "AdventureGame/Items/InventoryItem.h"
 #include "AdventureGame/AdventureGame.h"
 
 /**

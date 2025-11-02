@@ -6,8 +6,8 @@
 #include "GameplayTagContainer.h"
 
 #include "Engine/StaticMeshActor.h"
-#include "../Gameplay/VerbInteractions.h"
-#include "../Enums/WalkDirection.h"
+#include "AdventureGame/Gameplay/VerbInteractions.h"
+#include "AdventureGame/Enums/WalkDirection.h"
 #include "Components/SphereComponent.h"
 #include "AdventureGame/Items/ItemDataAsset.h"
 #include "AdventureGame/Items/ItemDataList.h"

@@ -2,8 +2,8 @@
 
 
 #include "ItemList.h"
-#include "../AdventureGame.h"
-#include "../Constants.h"
+#include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/Constants.h"
 #include "ItemData.h"
 #include "Kismet/GameplayStatics.h"
 

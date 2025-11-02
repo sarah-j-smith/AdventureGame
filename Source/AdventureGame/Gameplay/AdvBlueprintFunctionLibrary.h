@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "../Enums/DoorState.h"
+#include "AdventureGame/Enums/DoorState.h"
 #include "AdvBlueprintFunctionLibrary.generated.h"
 
 class UItemManager;

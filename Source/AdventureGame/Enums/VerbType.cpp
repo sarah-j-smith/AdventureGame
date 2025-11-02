@@ -1,6 +1,6 @@
 #include "VerbType.h"
 
-#include "../Constants.h"
+#include "AdventureGame/Constants.h"
 #include "Internationalization/StringTableRegistry.h"
 
 /**

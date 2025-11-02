@@ -3,11 +3,11 @@
 
 #include "BarkText.h"
 
-#include "../AdventureGame.h"
+#include "AdventureGame/AdventureGame.h"
 #include "BarkLine.h"
 #include "BarkRequest.h"
-#include "../Player/AdventureCharacter.h"
-#include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/Player/AdventureCharacter.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
 #include "Components/SphereComponent.h"
 
 #include "Components/VerticalBox.h"

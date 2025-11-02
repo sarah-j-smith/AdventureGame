@@ -5,8 +5,8 @@
 
 #include "DialogComponent.h"
 #include "PaperFlipbookComponent.h"
-#include "../Player/AdventurePlayerController.h"
-#include "../HUD/AdventureGameHUD.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
+#include "AdventureGame/HUD/AdventureGameHUD.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/SViewport.h"

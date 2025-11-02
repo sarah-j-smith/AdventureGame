@@ -3,7 +3,7 @@
 
 #include "Puck.h"
 
-#include "../AdventureGame.h"
+#include "AdventureGame/AdventureGame.h"
 
 #include "EnhancedInputComponent.h"
 

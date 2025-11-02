@@ -3,7 +3,7 @@
 
 #include "InteractionHUD.h"
 
-#include "../Constants.h"
+#include "AdventureGame/Constants.h"
 #include "Components/Image.h"
 #include "Internationalization/StringTableRegistry.h"
 

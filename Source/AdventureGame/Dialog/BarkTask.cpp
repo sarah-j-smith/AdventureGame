@@ -3,9 +3,9 @@
 
 #include "BarkTask.h"
 
-#include "../AdventureGame.h"
-#include "../HUD/AdvGameUtils.h"
-#include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/HUD/AdvGameUtils.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
 
 #include "Kismet/GameplayStatics.h"
 

@@ -3,9 +3,9 @@
 
 #include "Door.h"
 
-#include "../Constants.h"
-#include "../Gameplay/AdventureGameInstance.h"
-#include "../Enums/VerbType.h"
+#include "AdventureGame/Constants.h"
+#include "AdventureGame/Gameplay/AdventureGameInstance.h"
+#include "AdventureGame/Enums/VerbType.h"
 
 #include "AdventureGame/Enums/AdventureGameplayTags.h"
 #include "Internationalization/StringTableRegistry.h"

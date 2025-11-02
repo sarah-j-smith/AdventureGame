@@ -3,7 +3,7 @@
 
 #include "AdventureAIController.h"
 
-#include "../AdventureGame.h"
+#include "AdventureGame/AdventureGame.h"
 #include "Navigation/PathFollowingComponent.h"
 
 void AAdventureAIController::OnPossess(APawn* InPawn)

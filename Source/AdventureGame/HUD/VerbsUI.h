@@ -6,7 +6,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
-#include "../Enums/VerbType.h"
+#include "AdventureGame/Enums/VerbType.h"
 #include "Styling/SlateTypes.h"
 
 #include "VerbsUI.generated.h"

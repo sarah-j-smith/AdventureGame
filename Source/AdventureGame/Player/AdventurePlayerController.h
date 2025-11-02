@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "CommandManager.h"
 
-#include "../Enums/PlayerCommand.h"
-#include "../Enums/ChoiceState.h"
-#include "../Enums/InteractionType.h"
-#include "../Enums/VerbType.h"
-#include "../Items/InventoryItem.h"
-#include "../Enums/SaveGameStatus.h"
+#include "AdventureGame/Enums/PlayerCommand.h"
+#include "AdventureGame/Enums/ChoiceState.h"
+#include "AdventureGame/Enums/InteractionType.h"
+#include "AdventureGame/Enums/VerbType.h"
+#include "AdventureGame/Items/InventoryItem.h"
+#include "AdventureGame/Enums/SaveGameStatus.h"
 
 #include "AdventureGame/Constants.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"

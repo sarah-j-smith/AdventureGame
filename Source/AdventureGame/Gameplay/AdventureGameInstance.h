@@ -7,9 +7,9 @@
 #include "GameplayTagAssetInterface.h"
 #include "GameplayTagContainer.h"
 
-#include "../AdventureGame.h"
+#include "AdventureGame/AdventureGame.h"
 
-#include "../Enums/RoomTransitionPhase.h"
+#include "AdventureGame/Enums/RoomTransitionPhase.h"
 #include "AdventureGame/Enums/ItemDisposition.h"
 #include "AdventureGame/Enums/ItemKind.h"
 #include "AdventureGame/Items/ItemManagerProvider.h"

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AdventurePlayerController.h"
-#include "../Dialog/BarkText.h"
+#include "AdventureGame/Dialog/BarkText.h"
 #include "PaperZDCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "AdventureCharacter.generated.h"

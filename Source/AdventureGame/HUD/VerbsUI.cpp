@@ -3,7 +3,7 @@
 
 #include "VerbsUI.h"
 
-#include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
 
 void UVerbsUI::NativeOnInitialized()
 {

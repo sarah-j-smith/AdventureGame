@@ -3,10 +3,10 @@
 
 #include "InventoryUI.h"
 
-#include "../Items/ItemList.h"
-#include "../AdventureGame.h"
-#include "../Gameplay/AdventureGameInstance.h"
-#include "../Player/AdventurePlayerController.h"
+#include "AdventureGame/Items/ItemList.h"
+#include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/Gameplay/AdventureGameInstance.h"
+#include "AdventureGame/Player/AdventurePlayerController.h"
 
 #include "Kismet/GameplayStatics.h"
 

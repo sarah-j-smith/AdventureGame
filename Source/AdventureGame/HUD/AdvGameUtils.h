@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Enums/VerbType.h"
+#include "AdventureGame/Enums/VerbType.h"
 
 class AHotSpot;
 class UInventoryItem;

@@ -3,7 +3,7 @@
 
 #include "AdventureGameModeBase.h"
 
-#include "../AdventureGame.h"
+#include "AdventureGame/AdventureGame.h"
 
 AAdventureGameModeBase::AAdventureGameModeBase()
 {

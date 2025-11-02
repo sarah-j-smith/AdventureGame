@@ -3,8 +3,8 @@
 
 #include "InteractTask.h"
 
-#include "../AdventureGame.h"
-#include "../HUD/AdvGameUtils.h"
+#include "AdventureGame/AdventureGame.h"
+#include "AdventureGame/HUD/AdvGameUtils.h"
 #include "AdventurePlayerController.h"
 
 #include "Kismet/GameplayStatics.h"
