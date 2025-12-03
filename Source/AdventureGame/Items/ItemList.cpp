@@ -124,7 +124,7 @@ void UItemList::GetInventoryItemsArray(TArray<UInventoryItem *> &Result) const
 
 void UItemList::DumpInventoryToLog() const
 {
-	uint Index = 0;
+	unsigned int Index = 0;
 	for (const FInventoryList *Iterator = Inventory; Iterator; Iterator = Iterator->Next)
 	{
 		FString Description = Iterator->Element->Description.ToString();

@@ -111,9 +111,9 @@ void ACommandManager::HandleTouchInput()
         AdventurePlayerController->DeprojectScreenPositionToWorld(LocationX, LocationY, MouseWorldLocation,
                                                                   MouseWorldDirection);
 
-        if (const AAdventureCharacter* PlayerCharacter = GetPlayerCharacter())
+        if (const AAdventureCharacter* APlayerCharacter = GetPlayerCharacter())
         {
-            const FVector PlayerLocation = PlayerCharacter->GetCapsuleComponent()->GetComponentLocation();
+            const FVector PlayerLocation = APlayerCharacter->GetCapsuleComponent()->GetComponentLocation();
             MouseWorldLocation.Z = PlayerLocation.Z;
         }
         HandleLocationClicked(MouseWorldLocation);
@@ -146,9 +146,9 @@ void ACommandManager::HandlePointAndClickInput()
         AdventurePlayerController->DeprojectScreenPositionToWorld(LocationX, LocationY, MouseWorldLocation,
                                                                   MouseWorldDirection);
 
-        if (const AAdventureCharacter* PlayerCharacter = GetPlayerCharacter())
+        if (const AAdventureCharacter* APlayerCharacter = GetPlayerCharacter())
         {
-            const FVector PlayerLocation = PlayerCharacter->GetCapsuleComponent()->GetComponentLocation();
+            const FVector PlayerLocation = APlayerCharacter->GetCapsuleComponent()->GetComponentLocation();
             MouseWorldLocation.Z = PlayerLocation.Z;
         }
         HandleLocationClicked(MouseWorldLocation);
@@ -368,21 +368,21 @@ void ACommandManager::HandleAIMovementCompleteNotify(EPathFollowingResult::Type 
 
 void ACommandManager::HandleMovementComplete()
 {
-    AAdventureCharacter* PlayerCharacter = GetPlayerCharacter();
-    check(PlayerCharacter);
+    AAdventureCharacter* APlayerCharacter = GetPlayerCharacter();
+    check(APlayerCharacter);
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("HandleMovementComplete"));
     AIStatus = EAIStatus::Idle;
     if (CurrentHotSpot && LastPathResult == EAIMoveResult::Success)
     {
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("CurrentHotSpot && (LastPathResult == EAIMoveResult::Success)"));
-        PlayerCharacter->SetFacingDirection(CurrentHotSpot->FacingDirection);
-        PlayerCharacter->TeleportToLocation(CurrentHotSpot->WalkToPosition);
+        APlayerCharacter->SetFacingDirection(CurrentHotSpot->FacingDirection);
+        APlayerCharacter->TeleportToLocation(CurrentHotSpot->WalkToPosition);
         PerformHotSpotInteraction();
         return;
     } else if (!TargetLocationForAI.IsZero() && LastPathResult == EAIMoveResult::Success)
     {
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("TargetLocationForAI && (LastPathResult == EAIMoveResult::Success)"));
-        PlayerCharacter->TeleportToLocation(TargetLocationForAI);
+        APlayerCharacter->TeleportToLocation(TargetLocationForAI);
     }
     InterruptCurrentAction();
 }
@@ -425,8 +425,8 @@ void ACommandManager::WalkToLocation(const FVector& Location)
 
 void ACommandManager::WalkToHotSpot(AHotSpot* HotSpot)
 {
-    const AAdventureCharacter* PlayerCharacter = GetPlayerCharacter();
-    const UCapsuleComponent* Capsule = PlayerCharacter->GetCapsuleComponent();
+    const AAdventureCharacter* APlayerCharacter = GetPlayerCharacter();
+    const UCapsuleComponent* Capsule = APlayerCharacter->GetCapsuleComponent();
     const FVector PlayerLocation = Capsule->GetComponentLocation();
 
     FVector HotSpotWalkToLocation = HotSpot->WalkToPosition;
@@ -491,9 +491,9 @@ void ACommandManager::InterruptCurrentAction()
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("InterruptCurrentAction"));
     SetInputLocked(false);
     TargetLocationForAI = FVector::ZeroVector;
-    if (AAdventureCharacter* PlayerCharacter = GetPlayerCharacter())
+    if (AAdventureCharacter* APlayerCharacter = GetPlayerCharacter())
     {
-        PlayerCharacter->GetMovementComponent()->StopActiveMovement();
+        APlayerCharacter->GetMovementComponent()->StopActiveMovement();
     }
     CurrentVerb = EVerbType::WalkTo;
     CurrentCommand = EPlayerCommand::None;
@@ -512,10 +512,10 @@ void ACommandManager::ClearCurrentPath()
 
 void ACommandManager::TeleportToLocation(const FVector& Location)
 {
-    AAdventureCharacter* PlayerCharacter = GetPlayerCharacter();
+    AAdventureCharacter* APlayerCharacter = GetPlayerCharacter();
     FVector Dest = Location;
-    Dest.Z = PlayerCharacter->GetCapsuleComponent()->GetComponentLocation().Z;
-    PlayerCharacter->TeleportToLocation(Dest);
+    Dest.Z = APlayerCharacter->GetCapsuleComponent()->GetComponentLocation().Z;
+    APlayerCharacter->TeleportToLocation(Dest);
     LastPathResult = EAIMoveResult::Success;
     AIStatus = EAIStatus::AlreadyThere;
     ShouldCompleteMovementNextTick = true;
@@ -544,9 +544,9 @@ void ACommandManager::SetVerbAndCommandFromHotSpot(AHotSpot* HotSpot)
 
 void ACommandManager::StopAIMovement()
 {
-    AAdventureCharacter* PlayerCharacter = GetPlayerCharacter();
-    if (!IsValid(PlayerCharacter)) return;
-    AAdventureAIController* AI = Cast<AAdventureAIController>(PlayerCharacter->GetController());
+    AAdventureCharacter* APlayerCharacter = GetPlayerCharacter();
+    if (!IsValid(APlayerCharacter)) return;
+    AAdventureAIController* AI = Cast<AAdventureAIController>(APlayerCharacter->GetController());
     if (!IsValid(AI))
     {
         UE_LOG(LogAdventureGame, VeryVerbose, TEXT("PlayerCharacter controller expected to be AIController"));
@@ -555,31 +555,31 @@ void ACommandManager::StopAIMovement()
     if (AIStatus == EAIStatus::Moving)
     {
         AI->StopMovement();
-        PlayerCharacter->GetMovementComponent()->StopActiveMovement();
+        APlayerCharacter->GetMovementComponent()->StopActiveMovement();
         AIStatus = EAIStatus::Idle;
     }
 }
 
-void ACommandManager::ConnectToPlayerHUD(UAdventureGameHUD* AdventureGameHUD)
+void ACommandManager::ConnectToPlayerHUD(UAdventureGameHUD* AAdventureGameHUD)
 {
     if (bDisableHUDUpdates) return;
 
-    AdventureGameHUD->BindNotifierHandlers(InteractionNotifier);
-    AdventureGameHUD->BindCommandHandlers(this);
+    AAdventureGameHUD->BindNotifierHandlers(InteractionNotifier);
+    AAdventureGameHUD->BindCommandHandlers(this);
 
     if (UAdventureGameInstance *AdventureGameInstance = GetAdventureGameInstance())
     {
-        AdventureGameHUD->BindInventoryHandlers(AdventureGameInstance);
+        AAdventureGameHUD->BindInventoryHandlers(AdventureGameInstance);
     }
     if (AAdventureGameModeBase *GameMode = Cast<AAdventureGameModeBase>(UGameplayStatics::GetGameMode(this)))
     {
-        AdventureGameHUD->BindScoreHandlers(GameMode);
+        AAdventureGameHUD->BindScoreHandlers(GameMode);
     }
 }
 
-void ACommandManager::AddUIHandlers(UAdventureGameHUD *AdventureGameHUD)
+void ACommandManager::AddUIHandlers(UAdventureGameHUD *AAdventureGameHUD)
 {
-    if (!bDisableHUD) AdventureGameHUD->VerbsUI->OnVerbChanged.BindDynamic(this, &ACommandManager::AssignVerb);
+    if (!bDisableHUD) AAdventureGameHUD->VerbsUI->OnVerbChanged.BindDynamic(this, &ACommandManager::AssignVerb);
 }
 
 void ACommandManager::SetupHUD()
@@ -636,9 +636,9 @@ AAdventureAIController* ACommandManager::GetAIController()
     /// IMPORTANT NOTE:
     ///   In normal game play the AdventurePlayerController (APC) will drive the setup of these
     ///   handlers in its BeginPlay() function. But in functional tests the APC does not exist.
-    if (const AAdventureCharacter* PlayerCharacter = GetPlayerCharacter())
+    if (const AAdventureCharacter* APlayerCharacter = GetPlayerCharacter())
     {
-        AAdventureAIController* AI = Cast<AAdventureAIController>(PlayerCharacter->GetController());
+        AAdventureAIController* AI = Cast<AAdventureAIController>(APlayerCharacter->GetController());
         if (!AI)
         {
             UE_LOG(LogAdventureGame, Warning, TEXT("Player character expected to have AI controller - got %s"),
@@ -649,7 +649,7 @@ AAdventureAIController* ACommandManager::GetAIController()
     return nullptr;
 }
 
-UAdventureGameInstance* ACommandManager::GetAdventureGameInstance()
+UAdventureGameInstance* ACommandManager::GetAdventureGameInstance() const
 {
     if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(
     UGameplayStatics::GetGameInstance(this)))

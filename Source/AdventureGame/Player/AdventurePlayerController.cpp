@@ -46,7 +46,7 @@ void AAdventurePlayerController::BeginPlay()
     /// Set up commands and the HUD
     SetupCommandManager();
     
-    APawn* Pawn = SetupPuck(PlayerCharacter);
+    Puck = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
     Command->ConnectToMoveCompletedDelegate();
 
@@ -137,22 +137,22 @@ void AAdventurePlayerController::SetupCommandManager()
     }
 }
 
-APawn* AAdventurePlayerController::SetupPuck(AAdventureCharacter* PlayerCharacter)
+APawn* AAdventurePlayerController::SetupPuck(AAdventureCharacter* APlayerCharacter) const
 {
-    check(PlayerCharacter);
-    UCapsuleComponent* CapsuleComp = PlayerCharacter->GetCapsuleComponent();
+    check(APlayerCharacter);
+    UCapsuleComponent* CapsuleComp = APlayerCharacter->GetCapsuleComponent();
     check(CapsuleComp);
-    FVector CapsuleLocation = CapsuleComp->GetComponentLocation();
-    FVector SpawnLocation(CapsuleLocation.X, 0.0, 0.0);
+    const FVector CapsuleLocation = CapsuleComp->GetComponentLocation();
+    const FVector FSpawnLocation(CapsuleLocation.X, 0.0, 0.0);
 
     check(PuckClassToSpawn)
-    APuck* Puck = GetWorld()->SpawnActor<APuck>(
+    APuck* NewPuck = GetWorld()->SpawnActor<APuck>(
         PuckClassToSpawn,
-        SpawnLocation,
+        FSpawnLocation,
         FRotator::ZeroRotator);
 
-    Command->AddInputHandlers(Puck);
-    return Puck;
+    Command->AddInputHandlers(NewPuck);
+    return NewPuck;
 }
 
 void AAdventurePlayerController::SetupAIController(APawn* AttachToPawn)

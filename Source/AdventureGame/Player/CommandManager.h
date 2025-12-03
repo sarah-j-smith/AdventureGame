@@ -136,9 +136,9 @@ public:
 
     bool ShouldInterruptCurrentActionOnNextTick() const
     {
-        if (const UPlayerBarkManager* PlayerBarkManager = GetBarkController())
+        if (const UPlayerBarkManager* APlayerBarkManager = GetBarkController())
         {
-            return bShouldInterruptCurrentActionOnNextTick && PlayerBarkManager->IsPlayerBarking() ==
+            return bShouldInterruptCurrentActionOnNextTick && APlayerBarkManager->IsPlayerBarking() ==
                 EBarkAction::NotBarking;
         }
         return bShouldInterruptCurrentActionOnNextTick;
@@ -397,5 +397,5 @@ private:
 
     AAdventureAIController* GetAIController();
 
-    UAdventureGameInstance* GetAdventureGameInstance();
+    UAdventureGameInstance* GetAdventureGameInstance() const;
 };

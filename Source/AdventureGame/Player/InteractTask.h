@@ -38,9 +38,9 @@ public:
 
 	void SetInteractionType(const EInteractionType InteractionType);
 
-	void SetTimeDirection(const EInteractTimeDirection TimeDirection)
+	void SetTimeDirection(const EInteractTimeDirection ETimeDirection)
 	{
-		this->TimeDirection = TimeDirection;
+		this->TimeDirection = ETimeDirection;
 	}
 
 	virtual void Activate() override;

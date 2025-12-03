@@ -189,7 +189,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<APuck> PuckClassToSpawn;
 	
-	APawn *SetupPuck(AAdventureCharacter *PlayerCharacter);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	APawn *Puck;
+	
+	APawn *SetupPuck(AAdventureCharacter *PlayerCharacter) const;
 
 	void SetupAIController(APawn *AttachToPawn);
 

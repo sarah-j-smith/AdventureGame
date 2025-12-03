@@ -27,8 +27,8 @@ void AHotSpot::BeginPlay()
 {
 	HotSpotType = IsPickup() ? "PickUp" : "HotSpot";
 	HotSpotName = ShortDescription.IsEmpty() ? GetClass()->GetName() : ShortDescription.ToString();
-	UStaticMeshComponent* StaticMeshComponent = GetStaticMeshComponent();
-	if (StaticMeshComponent && StaticMeshComponent->GetStaticMesh())
+	const UStaticMeshComponent* AStaticMeshComponent = GetStaticMeshComponent();
+	if (AStaticMeshComponent && AStaticMeshComponent->GetStaticMesh())
 	{
 		SetEnableMeshComponent(true);
 		Super::OnBeginCursorOver.AddDynamic(this, &AHotSpot::OnBeginCursorOver);
@@ -56,15 +56,15 @@ void AHotSpot::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 FGameplayTagContainer AHotSpot::GetTags() const
 {
-	FGameplayTagContainer Tags;
-	Tags.AppendTags(HistoryTags);
-	if (HotSpotHidden) Tags.AddTag(AdventureGameplayTags::HotSpot_Hidden);
-	return Tags;
+	FGameplayTagContainer FTags;
+	FTags.AppendTags(HistoryTags);
+	if (HotSpotHidden) FTags.AddTag(AdventureGameplayTags::HotSpot_Hidden);
+	return FTags;
 }
 
-void AHotSpot::SetTags(const FGameplayTagContainer& Tags)
+void AHotSpot::SetTags(const FGameplayTagContainer& ATags)
 {
-	if (Tags.HasTag(AdventureGameplayTags::HotSpot_Hidden))
+	if (ATags.HasTag(AdventureGameplayTags::HotSpot_Hidden))
 	{
 		Hide();
 	}
@@ -72,7 +72,7 @@ void AHotSpot::SetTags(const FGameplayTagContainer& Tags)
 	{
 		Show();
 	}
-	HistoryTags = Tags.Filter(AdventureGameplayTags::HistoryGameplayTags());
+	HistoryTags = ATags.Filter(AdventureGameplayTags::HistoryGameplayTags());
 }
 
 void AHotSpot::RegisterForSaveAndLoad()
@@ -264,7 +264,7 @@ void AHotSpot::OnItemGiven_Implementation()
 	BarkAndEnd(LOCTABLE(ITEM_STRINGS_KEY, "ItemGivenDefaultText"));
 }
 
-AActor *AHotSpot::SpawnAtPlayerLocation(TSubclassOf<AActor> SpawnClass, float Scale, float Lifetime)
+AActor *AHotSpot::SpawnAtPlayerLocation(TSubclassOf<AActor> SpawnClass, float Scale, float Lifetime) const
 {
 	APawn *PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	
@@ -297,27 +297,27 @@ void AHotSpot::Show()
 	HotSpotHidden = false;
 }
 
-void AHotSpot::SetEnableMeshComponent(bool Enabled)
+void AHotSpot::SetEnableMeshComponent(bool Enabled) const
 {
 	if (Enabled)
 	{
-		UStaticMeshComponent* StaticMeshComponent = GetStaticMeshComponent();
-		if (StaticMeshComponent && StaticMeshComponent->GetStaticMesh())
+		UStaticMeshComponent* AStaticMeshComponent = GetStaticMeshComponent();
+		if (AStaticMeshComponent && AStaticMeshComponent->GetStaticMesh())
 		{
 			UE_LOG(LogAdventureGame, Verbose, TEXT("%s %s static mesh is valid & enabled."), *HotSpotType, *HotSpotName);
 			// StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
-			StaticMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-			StaticMeshComponent->SetGenerateOverlapEvents(true);
+			AStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
+			AStaticMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+			AStaticMeshComponent->SetGenerateOverlapEvents(true);
 		}
 	}
 	else
 	{
-		UStaticMeshComponent* StaticMeshComponent = GetStaticMeshComponent();
-		if (StaticMeshComponent && StaticMeshComponent->GetStaticMesh())
+		UStaticMeshComponent* AStaticMeshComponent = GetStaticMeshComponent();
+		if (AStaticMeshComponent && AStaticMeshComponent->GetStaticMesh())
 		{
-			StaticMeshComponent->SetCollisionProfileName("NoCollision");
-			StaticMeshComponent->SetVisibility(false);
+			AStaticMeshComponent->SetCollisionProfileName("NoCollision");
+			AStaticMeshComponent->SetVisibility(false);
 			UE_LOG(LogAdventureGame, Verbose, TEXT("%s %s - static mesh is valid but disabled"), *HotSpotType, *HotSpotName);
 		}
 	}

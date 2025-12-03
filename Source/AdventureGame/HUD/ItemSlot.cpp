@@ -20,13 +20,13 @@ void UItemSlot::NativeOnInitialized()
 	}
 }
 
-void UItemSlot::AddItem(UInventoryItem* InventoryItem)
+void UItemSlot::AddItem(UInventoryItem* AnInventoryItem)
 {
-	if (InventoryItem != nullptr)
+	if (AnInventoryItem != nullptr)
 	{
 		HasItem = true;
-		this->InventoryItem = InventoryItem;
-		SetButtonImageFromInventoryItem(InventoryItem);
+		this->InventoryItem = AnInventoryItem;
+		SetButtonImageFromInventoryItem(AnInventoryItem);
 		ItemSlot->SetVisibility(ESlateVisibility::Visible);
 	}
 }
@@ -77,15 +77,15 @@ void UItemSlot::HandleOnUnhover()
 	}		
 }
 
-void UItemSlot::SetButtonImageFromInventoryItem(const UInventoryItem* InventoryItem)
+void UItemSlot::SetButtonImageFromInventoryItem(const UInventoryItem* AnInventoryItem)
 {
 	SavedStyle = ItemSlot->GetBrush();
 	FSlateBrush NewBrush = SavedStyle;
 	NewBrush.DrawAs = ESlateBrushDrawType::Type::Image;
 #if WITH_EDITOR
-	NewBrush.SetResourceObject(InventoryItem->Thumbnail->GetSourceTexture());
+	NewBrush.SetResourceObject(AnInventoryItem->Thumbnail->GetSourceTexture());
 #else
-	NewBrush.SetResourceObject(InventoryItem->Thumbnail->GetBakedTexture());
+	NewBrush.SetResourceObject(AnInventoryItem->Thumbnail->GetBakedTexture());
 #endif
 	ItemSlot->SetBrush(NewBrush);
 }

@@ -77,9 +77,9 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=D4A1C622_002DCA28_002D1B51_002D71BF_002D56E72B76BD7A_002Fd_003APrivate_002Ff_003AMetalShaderFormat_002Ecpp/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/INDENT_STYLE/@EntryValue">Space</s:String>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EFeature_002EServices_002ECpp_002ECodeStyle_002ESettingsUpgrade_002EFunctionReturnStyleSettingsUpgrader/@EntryIndexedValue">True</s:Boolean>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8e86aeaa_002D4b3e_002D4292_002Db7a0_002De8b296d97091/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from ConversationDataTest.cpp #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Project Location="/Users/sez/depot/AdventureGame" Presentation="&amp;lt;AdventureGame&amp;gt;" /&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8e86aeaa_002D4b3e_002D4292_002Db7a0_002De8b296d97091/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from ConversationDataTest.cpp #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="\Users\sez\depot\AdventureGame" Presentation="&amp;lt;AdventureGame&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a24cec2e_002D9326_002D4c50_002D95f9_002Db932b59d22b7/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from ConversationDataTest.cpp" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Solution /&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a24cec2e_002D9326_002D4c50_002D95f9_002Db932b59d22b7/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from ConversationDataTest.cpp" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

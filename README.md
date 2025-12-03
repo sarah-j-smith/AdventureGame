@@ -5,6 +5,7 @@ My Dev Environment:
 * Mac M3
 * Rider
 * Unreal 5.5
+* MacOS / Windows 10
 
 ![Screenshot from Ch 1](Docs/images/adventure-clip.gif)
 
