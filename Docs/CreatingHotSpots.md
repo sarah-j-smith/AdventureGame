@@ -144,7 +144,7 @@ If there is a seperate sprite for the HotSpot then choose that in the sprite dro
 * Sprite: Armchair sprite (or flipbook)
 
 Confirm that the mesh visibility under <b>Rendering</b> in the details panel is set to 
-hidden in game. If the green mesh is annoying, once you have it all set up in the editor
+**Hidden in game**. If the green mesh is annoying, once you have it all set up in the editor
 you can also turn visibility off altogether for the mesh. Its handy to have it on in case
 the mesh and the sprite get misaligned during the editing process.
 
@@ -186,3 +186,22 @@ correctly being overlapped by or is overlapping any other items as you expect.
 - The short description should show in the interaction UI eg "Walk to tatty armchair"
 - The adventure character should be able to look at the hotspot 
 - They will walk up to it, and bark the long description
+
+# Troubleshooting
+
+* If the hit testing is not working properly: try tuning the mesh
+
+Turn on the collision mesh visibility under the "Show" menu in the Mesh editor window. Ensure there
+is in fact a collision mesh added that makes sense for the object.
+
+Try making the mesh visible in the scene by turning off the "Hidden in Game" setting to 
+make sure it hasn't been moved.
+
+Check the scene to make sure there are not **other objects** interfering with the expected
+collision shape. For example you can drag in static sprites into the scene, and these will be
+turned into PaperSpriteActors by the editor, and will have BlockAllDynamic turned on. Any sprites
+that are not part of a hotspot should have these settings:
+
+* Generate overlap events: false
+* Character can step up on: no
+* Collision presets: No Collision

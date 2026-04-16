@@ -15,8 +15,8 @@ class FConversationTestUtils
 public:
     static FPromptData CreatePromptData(
         int32 Number, int32 SubNumber, bool Visible, bool HasBeenSelected,
-        bool SingleUse, const TCHAR* PromptText[], uint PromptTextCount,
-        const TCHAR* NPCResponse[], uint NPCResponseCount,
+        bool SingleUse, const TCHAR* PromptText[], unsigned int PromptTextCount,
+        const TCHAR* NPCResponse[], unsigned int NPCResponseCount,
         MockDataTable* SwitchDataTable, bool EndsConversation, const TCHAR* Event
     );
 

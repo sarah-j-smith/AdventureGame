@@ -20,8 +20,8 @@ FName SomeEvent = TEXT("Some event");
 
 FPromptData FConversationTestUtils::CreatePromptData(
     int32 Number, int32 SubNumber, bool Visible, bool HasBeenSelected,
-    bool SingleUse, const TCHAR* PromptText[], uint PromptTextCount,
-    const TCHAR* NPCResponse[], uint NPCResponseCount,
+    bool SingleUse, const TCHAR* PromptTextIn[], unsigned int PromptTextCount,
+    const TCHAR* NPCResponse[], unsigned int NPCResponseCount,
     MockDataTable* SwitchDataTable = nullptr, bool EndsConversation = false, const TCHAR* Event = nullptr
 )
 {
@@ -33,15 +33,15 @@ FPromptData FConversationTestUtils::CreatePromptData(
     PromptData.SingleUse = SingleUse;
     {
         TArray<FText> PromptTextArray;
-        for (uint i = 0; i < PromptTextCount; i++)
+        for (unsigned int i = 0; i < PromptTextCount; i++)
         {
-            PromptTextArray.Add(FText::FromString(PromptText[i]));
+            PromptTextArray.Add(FText::FromString(PromptTextIn[i]));
         }
         PromptData.PromptText = PromptTextArray;
     }
     {
         TArray<FText> NPCResponseTextArray;
-        for (uint i = 0; i < NPCResponseCount; i++)
+        for (unsigned int i = 0; i < NPCResponseCount; i++)
         {
             NPCResponseTextArray.Add(FText::FromString(NPCResponse[i]));
         }
@@ -64,7 +64,7 @@ FConversationData CreateSequenceData(std::vector<FSequenceDataSpec> SequenceData
 {
     FConversationData ConversationData;
 
-    for (uint i = 0; i < SequenceDataSpecs.size(); i++)
+    for (unsigned int i = 0; i < SequenceDataSpecs.size(); i++)
     {
         int StringsIndex = i % 3;
         ConversationData.ConversationPromptArray.Add(
@@ -94,7 +94,7 @@ FConversationData FConversationTestUtils::CreateEmptyTextRowData()
     FConversationData ConversationData;
 
     // "Prompt 1 (row 1) has empty text"
-    const TCHAR* EmptyText2[] = {}; // empty array
+    const TCHAR* EmptyText2[1] = {}; // empty array
 
     ConversationData.ConversationPromptArray.Add(
         CreatePromptData(0, 0, true, false,

@@ -50,15 +50,15 @@ FBarkRequest* FBarkRequest::CreatePlayerMultilineRequest(const TArray<FText>& Ne
     if (HasLongLines(NewBarkLines))
     {
         TArray<FText> ShortTexts;
-        uint Index = 0;
-        TSet<uint> IsContinuation;
+        uint32 Index = 0;
+        TSet<uint32> IsContinuation;
         for (const FText& Text : NewBarkLines)
         {
             if (Text.ToString().Len() > BARK_LINE_WIDTH)
             {
                 TArray<FText> Wrapped = AdvGameUtils::WrapTextLinesToMaxCharacters(Text, BARK_LINE_WIDTH);
                 ShortTexts.Append(Wrapped);
-                for (uint W = 1; W < Wrapped.Num(); W++)
+                for (int W = 1; W < Wrapped.Num(); W++)
                 {
                     IsContinuation.Add(W + Index);
                 }
@@ -79,7 +79,7 @@ float FBarkRequest::GetDurationForLine(const int32 LineIndex) const
 {
     if (IsContinuation.Contains(LineIndex)) return 0.0f;
     if (LineIndex < BarkLines.Num() - 1) return BARK_LINE_DELAY;
-    const uint DiscreteLineCount = BarkLines.Num() - IsContinuation.Num();
+    const uint32 DiscreteLineCount = BarkLines.Num() - IsContinuation.Num();
     return BARK_LINE_DELAY * DiscreteLineCount;
 }
 
@@ -132,5 +132,6 @@ void FBarkRequest::Dump(const FBarkRequest* Request)
 
 bool FBarkRequest::HasLongLines(const TArray<FText>& NewBarkLines)
 {
-    return Algo::FindBy(NewBarkLines, true, [](const FText& Text) { return Text.ToString().Len() > BARK_LINE_WIDTH; });
+    const auto Result = Algo::FindBy(NewBarkLines, true, [](const FText& Text) { return Text.ToString().Len() > BARK_LINE_WIDTH; });
+    return Result != nullptr;
 }

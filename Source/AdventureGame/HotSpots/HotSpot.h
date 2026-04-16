@@ -195,7 +195,7 @@ public:
 	/// being destroyed automatically. Intended for item interactions,
 	/// where the actor is destroyed on adding to the inventory.
 	UFUNCTION(BlueprintCallable, Category = "Player Actions")
-	AActor *SpawnAtPlayerLocation(TSubclassOf<AActor> SpawnClass, float Scale = 1.0f, float Lifetime = 2.0f);
+	AActor *SpawnAtPlayerLocation(TSubclassOf<AActor> SpawnClass, float Scale = 1.0f, float Lifetime = 2.0f) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Player Actions")
 	void Hide();
@@ -203,7 +203,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player Actions")
 	void Show();
 
-	void SetEnableMeshComponent(bool Enabled);
+	void SetEnableMeshComponent(bool Enabled) const;
 
 protected:
 	// Used in debug messages only - not unique.

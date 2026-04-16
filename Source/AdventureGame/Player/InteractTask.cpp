@@ -32,9 +32,9 @@ UInteractTask* UInteractTask::DoInteractTask(const UObject* WorldContextObject, 
 	return BlueprintNode;
 }
 
-void UInteractTask::SetWorldContextObject(const UObject* WorldContextObject)
+void UInteractTask::SetWorldContextObject(const UObject* AWorldContextObject)
 {
-	this->WorldContextObject = WorldContextObject;
+	this->WorldContextObject = AWorldContextObject;
 }
 
 void UInteractTask::SetInteractionType(const EInteractionType InteractionType)
@@ -143,9 +143,9 @@ void UInteractTask::Interact()
 	}
 }
 
-void UInteractTask::InteractionCompleted(EInteractionType Interaction, int32 UID, bool bSuccess)
+void UInteractTask::InteractionCompleted(EInteractionType EInteraction, int32 UID, bool bSuccess)
 {
-	if (Interaction == this->Interaction && UID == MyUID)
+	if (EInteraction == this->Interaction && UID == MyUID)
 	{
 		if (bSuccess)
 		{
@@ -160,6 +160,6 @@ void UInteractTask::InteractionCompleted(EInteractionType Interaction, int32 UID
 	else
 	{
 		UE_LOG(LogAdventureGame, Log, TEXT("Ignoring task completion message UID: %d - Interaction: %s"),
-			UID, *(InteractionGetDescriptiveString(Interaction)));
+			UID, *(InteractionGetDescriptiveString(EInteraction)));
 	}
 }

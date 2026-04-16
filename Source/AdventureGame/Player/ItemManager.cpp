@@ -60,9 +60,9 @@ bool UItemManager::CanInteractWith(EItemKind OtherItem) const
 
 void UItemManager::SwapSourceAndTarget()
 {
-    UInventoryItem* TargetItem = this->TargetItem;
+    UInventoryItem* ATargetItem = this->TargetItem;
     this->TargetItem = this->SourceItem;
-    this->SourceItem = TargetItem;
+    this->SourceItem = ATargetItem;
 }
 
 UInventoryItem* UItemManager::ItemAddToInventory(const EItemKind& ItemToAdd)
@@ -101,11 +101,11 @@ void UItemManager::ItemRemoveFromInventory(const EItemKind& ItemToRemove)
     }
 }
 
-void UItemManager::ItemsRemoveFromInventory(const TSet<EItemKind>& ItemsToRemove)
+void UItemManager::ItemsRemoveFromInventory(const TSet<EItemKind>& TItemsToRemove)
 {
     if (UAdventureGameInstance *GameInstance = GetAdventureGameInstance())
     {
-        GameInstance->RemoveItemsFromInventory(ItemsToRemove);
+        GameInstance->RemoveItemsFromInventory(TItemsToRemove);
         if (SourceItem && !GameInstance->IsInInventory(SourceItem->ItemKind)) ClearSourceItem();
         if (TargetItem && !GameInstance->IsInInventory(TargetItem->ItemKind)) ClearTargetItem();
     }

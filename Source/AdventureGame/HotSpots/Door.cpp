@@ -58,15 +58,15 @@ EVerbType ADoor::CheckForDefaultCommand() const
 
 FGameplayTagContainer ADoor::GetTags() const
 {
-    FGameplayTagContainer Tags = Super::GetTags();
-    if (DoorState != EDoorState::Unknown) AdventureGameplayTags::SetDoorState(DoorState, Tags);
-    return Tags;
+    FGameplayTagContainer FTags = Super::GetTags();
+    if (DoorState != EDoorState::Unknown) AdventureGameplayTags::SetDoorState(DoorState, FTags);
+    return FTags;
 }
 
-void ADoor::SetTags(const FGameplayTagContainer& Tags)
+void ADoor::SetTags(const FGameplayTagContainer& FTags)
 {
-    Super::SetTags(Tags);
-    DoorState = AdventureGameplayTags::GetDoorState(Tags);
+    Super::SetTags(FTags);
+    DoorState = AdventureGameplayTags::GetDoorState(FTags);
 }
 
 bool ADoor::UnlockDoor()

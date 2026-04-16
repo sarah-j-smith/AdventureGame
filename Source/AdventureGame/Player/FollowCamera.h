@@ -85,13 +85,13 @@ public:
 
 	/// Setup the confines of the scene that the camera can view & pan across.
 	/// Only valid after InitialiseCameraConfines has been called.
-	void GetSceneBounds(FVector &ConfineMax, FVector &ConfineMin)
+	void GetSceneBounds(FVector &FConfineMax, FVector &FConfineMin) const
 	{
 		verify(bConfinesInitialised);
-		float HalfCamWidth = CameraComponent->OrthoWidth * 0.5f;
-		float HalfCamHeight = (CameraComponent->OrthoWidth / CameraComponent->AspectRatio) * 0.5;
-		ConfineMax = this->ConfineMax + FVector(HalfCamWidth, HalfCamHeight, 0.0f);
-		ConfineMin = this->ConfineMin - FVector(HalfCamWidth, HalfCamHeight, 0.0f);
+		const float HalfCamWidth = CameraComponent->OrthoWidth * 0.5f;
+		const float HalfCamHeight = (CameraComponent->OrthoWidth / CameraComponent->AspectRatio) * 0.5;
+		FConfineMax = this->ConfineMax + FVector(HalfCamWidth, HalfCamHeight, 0.0f);
+		FConfineMin = this->ConfineMin - FVector(HalfCamWidth, HalfCamHeight, 0.0f);
 	}
 
 	//////////////////////////////////

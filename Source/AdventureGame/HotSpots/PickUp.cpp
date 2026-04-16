@@ -30,15 +30,15 @@ void APickUp::BeginPlay()
 
 FGameplayTagContainer APickUp::GetTags() const
 {
-    FGameplayTagContainer Tags = Super::GetTags();
-    if (SpriteHidden) Tags.AddTag(AdventureGameplayTags::HotSpot_SpriteHidden);
-    return Tags;
+    FGameplayTagContainer FTags = Super::GetTags();
+    if (SpriteHidden) FTags.AddTag(AdventureGameplayTags::HotSpot_SpriteHidden);
+    return FTags;
 }
 
-void APickUp::SetTags(const FGameplayTagContainer& Tags)
+void APickUp::SetTags(const FGameplayTagContainer& ATags)
 {
-    Super::SetTags(Tags);
-    if (Tags.HasTag(AdventureGameplayTags::HotSpot_SpriteHidden))
+    Super::SetTags(ATags);
+    if (ATags.HasTag(AdventureGameplayTags::HotSpot_SpriteHidden))
     {
         HideSprite();
     }

@@ -9,7 +9,7 @@ struct AdvGameUtils
 {
     static bool HasChangedMuch(const FVector2D& Current, const FVector2D& Previous);
 
-    static int32 GetUUID();
+    static uint32 GetUUID();
 
     /**
      * Get the text as an FText for a numeric score to display in the interaction UI.
@@ -121,5 +121,5 @@ struct AdvGameUtils
      * @param MaxLength Maximum length of a line
      * @return Array of lines, all less than or equal to MaxLength
      */
-    static TArray<FText> WrapTextLinesToMaxCharacters(const FText& NewText, uint32 MaxLength = 30);
+    static TArray<FText> WrapTextLinesToMaxCharacters(const FText& NewText, const int32 MaxLength = 30);
 };

@@ -88,18 +88,18 @@ void UDialogComponent::FillConversationData()
     }
 }
 
-void UDialogComponent::UpdatePromptAtIndex(int32 TopicIndex, int32 PromptIndex)
+void UDialogComponent::UpdatePromptAtIndex(int32 ATopicIndex, int32 APromptIndex)
 {
-    int PromptSubIndex = PromptsToShow[PromptIndex].PromptSubNumber;
-    ConversationData[TopicIndex].MarkPromptSelected(PromptIndex, PromptSubIndex);
+    const int PromptSubIndex = PromptsToShow[APromptIndex].PromptSubNumber;
+    ConversationData[ATopicIndex].MarkPromptSelected(APromptIndex, PromptSubIndex);
 }
 
-void UDialogComponent::LoadPrompts(TArray<FPromptData>& PromptsToShow)
+void UDialogComponent::LoadPrompts(TArray<FPromptData>& TPromptsToShow)
 {
     if (ConversationData.IsEmpty()) return;
     if (TopicIndex < ConversationData.Num() && TopicIndex >= 0)
     {
-        ConversationData[TopicIndex].DisplayPrompts(PromptsToShow);
+        ConversationData[TopicIndex].DisplayPrompts(TPromptsToShow);
     }
     else
     {
@@ -201,11 +201,11 @@ void UDialogComponent::ShowNPCResponse()
 {
     UE_LOG(LogAdventureGame, Warning, TEXT("ShowNPCResponse"));
     DialogState = EDialogState::NPC;
-    const AHotSpotNPC* NPC = Cast<AHotSpotNPC>(GetOwner());
-    check(NPC);
+    const AHotSpotNPC* ANPC = Cast<AHotSpotNPC>(GetOwner());
+    check(ANPC);
     const FBarkRequest* NPCRequest = FBarkRequest::CreateNPCMultilineRequest(
         PromptsToShow[CurrentPromptIndex].NPCResponse, 0,
-        NPC->BarkPosition, TextColor.ToFColor(true));
+        ANPC->BarkPosition, TextColor.ToFColor(true));
     BarkUID = NPCRequest->GetUID();
     Bark->AddBarkRequest(NPCRequest);
 }

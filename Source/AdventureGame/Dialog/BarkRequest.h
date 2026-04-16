@@ -16,7 +16,7 @@ public:
 
     void GetBarkLines(TArray<FText>&OutBarkLines) const { Algo::Copy(BarkLines, OutBarkLines); }
 
-    uint GetLineCount() const { return BarkLines.Num(); }
+    int32 GetLineCount() const { return BarkLines.Num(); }
 
     int32 GetUID() const { return RequestUID; }
 
@@ -100,7 +100,7 @@ public:
     static bool HasLongLines(const TArray<FText>& NewBarkLines);
 
 private:
-    TSet<uint> IsContinuation;
+    TSet<unsigned int> IsContinuation;
     TArray<FText> BarkLines;
     int32 RequestUID = 0.0;
     FColor RequestColor;

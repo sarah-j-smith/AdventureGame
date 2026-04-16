@@ -3,6 +3,8 @@
 #include "AdventureGame/Constants.h"
 #include "AdventureGame/HotSpots/HotSpot.h"
 #include "AdventureGame/Items/InventoryItem.h"
+#include "Misc/Guid.h"
+
 #include "AdventureGame/AdventureGame.h"
 
 /**
@@ -17,11 +19,10 @@ bool AdvGameUtils::HasChangedMuch(const FVector2D& Current, const FVector2D& Pre
         std::numeric_limits<double>::epsilon());
 }
 
-int32 AdvGameUtils::GetUUID()
+uint32 AdvGameUtils::GetUUID()
 {
-    uuid_t UUIDLatent;
-    uuid_generate(UUIDLatent);
-    return UUIDLatent[0] | UUIDLatent[1] << 8 | UUIDLatent[2] << 16 | UUIDLatent[3] << 24;
+    const FGuid NewGuid = FGuid::NewGuid();
+    return NewGuid.A;
 }
 
 FText AdvGameUtils::GetScoreText(int32 Score)
@@ -118,10 +119,9 @@ TArray<FString> AdvGameUtils::NewLineSeperatedToArrayString(const FString& NewSt
     return TArray({ NewString });
 }
 
-TArray<FText> AdvGameUtils::WrapTextLinesToMaxCharacters(const FText& NewText, uint32 MaxLength)
+TArray<FText> AdvGameUtils::WrapTextLinesToMaxCharacters(const FText& NewText, const int32 MaxLength)
 {
     TArray<FText> WrappedLines;
-    uint32 CurrentStringIndex = 0;
     FString CurrentLine = NewText.ToString();
     while (CurrentLine.Len() > MaxLength)
     {

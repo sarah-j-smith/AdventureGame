@@ -67,11 +67,11 @@ void APuck::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	UE_LOG(LogAdventureGame, VeryVerbose, TEXT("APuck::SetupPlayerInputComponent"));
 
-	if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	if (UEnhancedInputComponent* AInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		InputComponent->BindAction(PointAndClickInput, ETriggerEvent::Triggered, this,
+		AInputComponent->BindAction(PointAndClickInput, ETriggerEvent::Triggered, this,
 								   &APuck::HandlePointAndClick);
-		InputComponent->BindAction(TouchInput, ETriggerEvent::Triggered, this,
+		AInputComponent->BindAction(TouchInput, ETriggerEvent::Triggered, this,
 								   &APuck::HandleTouchInput);
 		UE_LOG(LogAdventureGame, Verbose, TEXT("APuck::SetupPlayerInputComponent PointAndClickInput bindings done"));
 	}

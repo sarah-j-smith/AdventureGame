@@ -36,7 +36,7 @@ public:
 
     // Mark this prompt has been selected by the player.
     UFUNCTION(BlueprintCallable, Category = "HotSpot")
-    void UpdatePromptAtIndex(int32 TopicIndex, int32 PromptIndex);
+    void UpdatePromptAtIndex(int32 ATopicIndex, int32 PromptIndex);
 
 protected:
     // Called when the game starts
