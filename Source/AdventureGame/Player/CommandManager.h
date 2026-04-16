@@ -224,8 +224,6 @@ public:
     void SetVerbAndCommandFromHotSpot(AHotSpot* HotSpot);
 
     void StopAIMovement();
-
-    void SetupModes();
     
     /// A switch to teleport to new locations in the game instead using AI to
     /// walk there over the nav graph. Can be used with non-AI / non-nav mesh

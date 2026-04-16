@@ -50,7 +50,6 @@ void ACommandManager::BeginPlay()
 
     ConnectToMoveCompletedDelegate();
     SetupHUD();
-    SetupModes();
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();

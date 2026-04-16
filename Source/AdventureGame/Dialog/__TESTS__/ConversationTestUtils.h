@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "CoreMinimal.h"
 
 #include "AdventureGame/Dialog/PromptData.h"
