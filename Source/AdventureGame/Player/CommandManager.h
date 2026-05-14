@@ -51,8 +51,11 @@ class ADVENTUREGAME_API ACommandManager : public AActor,
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
-
     
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    
+    virtual void Destroyed() override;
+
 public:
     // Sets default values for this actor's properties
     ACommandManager();

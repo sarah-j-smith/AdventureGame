@@ -6,7 +6,7 @@
 #include "AdventureGame/Constants.h"
 #include "AdventureGame/AdventureGame.h"
 
-#include "AdventureGame/Player/AdventureCharacter.h"
+#include "AdventureGame/Items/InventoryItem.h"
 #include "AdventureGame/Player/AdventurePlayerController.h"
 #include "AdventureGame/Enums/AdventureGameplayTags.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"

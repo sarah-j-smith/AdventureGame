@@ -6,10 +6,7 @@
 #include "CommandManager.h"
 
 #include "AdventureGame/Enums/PlayerCommand.h"
-#include "AdventureGame/Enums/ChoiceState.h"
 #include "AdventureGame/Enums/InteractionType.h"
-#include "AdventureGame/Enums/VerbType.h"
-#include "AdventureGame/Items/InventoryItem.h"
 #include "AdventureGame/Enums/SaveGameStatus.h"
 
 #include "AdventureGame/Constants.h"
@@ -41,9 +38,10 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FEndAction, EInteractionType /* Interacti
  * 
  * Game launches and main level loads, then:
  * <pre>
- *  Instance / class                Loaded by
- * AdventureGameMode              Project settings for the main game 
- * AdventurePlayerController      AdventureGameMode
+ *  Instance / class                    Loaded by
+ *    AdventureGameMode              Project settings for the main game 
+ *    AdventurePlayerController      AdventureGameMode
+ *    
  * </pre>
  */
 UCLASS()
@@ -71,8 +69,7 @@ public:
 	///
 	/// SAVE AND LOAD GAME
 	///
-
-public:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Save Game")
 	FString DefaultSaveGameName = SAVE_GAME_NAME;
 
@@ -109,6 +106,7 @@ public:
 private:
 	FVector2D LastMouseClick = FVector2D(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 
+	bool bShouldWarnCommandManagerNotAdded = false;
 	const float CommandCheckInterval = 0.2f;
 	float CommandCheck = CommandCheckInterval;	
 	void CheckSceneForCommandManager(float DeltaTime);
@@ -123,7 +121,7 @@ private:
 	void CheckForLoadStartingScene();
 	
 	UFUNCTION()
-	void HandleRoomTransition(ERoomTransitionPhase RoomPhase);
+	void HandleRoomTransition(const ERoomTransitionPhase RoomPhase);
 	
 public:
 	//////////////////////////////////
@@ -191,6 +189,9 @@ private:
 	void EndTaskAction(EInteractionType InteractionType, int32 UID, bool Complete);
 
 public:
+	UFUNCTION()
+	void HandlePossessedPawnChanged(APawn *OldPawn, APawn *NewPawn);
+	
 	//////////////////////////////////
 	///
 	/// DETECT HOTSPOT INTERACTION

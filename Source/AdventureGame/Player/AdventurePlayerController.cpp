@@ -12,17 +12,10 @@
 #include "AdventureGame/Gameplay/AdventureSave.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"
 #include "AdventureGame/HUD/AdvGameUtils.h"
-#include "AdventureGame/HUD/AdventureGameHUD.h"
-#include "AdventureGame/HUD/ItemSlot.h"
-#include "AdventureGame/Items/InventoryItem.h"
-#include "AdventureGame/Items/ItemList.h"
 #include "AdventureGame/HotSpots/Door.h"
-#include "AdventureGame/Gameplay/AdventureGameModeBase.h"
 
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/PawnMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Navigation/PathFollowingComponent.h"
 
 AAdventurePlayerController::AAdventurePlayerController()
 {
@@ -30,12 +23,14 @@ AAdventurePlayerController::AAdventurePlayerController()
     DefaultMouseCursor = EMouseCursor::Crosshairs;
     bEnableMouseOverEvents = true;
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Construct: AAdventurePlayerController"));
+    
+    OnPossessedPawnChanged.AddDynamic(this, &AAdventurePlayerController::HandlePossessedPawnChanged);
 }
 
 void AAdventurePlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-    
+
     if (Command == nullptr)
     {
         CheckSceneForCommandManager(DeltaSeconds);
@@ -51,22 +46,24 @@ void AAdventurePlayerController::BeginPlay()
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT(">>>> BeginPlay: AAdventurePlayerController"));
     Super::BeginPlay();
 
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("     Super done - BeginPlay: AAdventurePlayerController - calling GetPawn"));
+    UE_LOG(LogAdventureGame, VeryVerbose,
+           TEXT("     Super done - BeginPlay: AAdventurePlayerController - calling GetPawn"));
 
     APawn* PlayerPawn = GetPawn();
     PlayerCharacter = Cast<AAdventureCharacter>(PlayerPawn);
     check(PlayerCharacter);
     SetupAnimationDelegates();
-    
+
     Puck = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
-    
+    Possess(Puck);
+
     SaveGameToSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnSaveGameComplete);
     LoadGameFromSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnLoadGameComplete);
-    
+
     UAdventureGameInstance* AdventureGameInstance = UAdvBlueprintFunctionLibrary::GetAdventureInstance(this);
     AdventureGameInstance->RoomTransitionedDelegate.AddDynamic(this, &AAdventurePlayerController::HandleRoomTransition);
-    
+
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("<<<< BeginPlay: AAdventurePlayerController"));
 }
 
@@ -81,7 +78,7 @@ void AAdventurePlayerController::HandleSaveGame(const FString& GameName)
 {
     UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(GetGameInstance());
     if (!AdventureGameInstance) return;
-    
+
     Command->SetInputLocked(true);
     UpdateSaveGameIndicator.Broadcast(ESaveGameStatus::Saving, true);
     AdventureGameInstance->SaveGame();
@@ -136,13 +133,34 @@ void AAdventurePlayerController::CheckSceneForCommandManager(float DeltaTime)
     CommandCheck -= DeltaTime;
     if (CommandCheck <= 0.0f)
     {
+        UE_LOG(LogAdventureGame, VeryVerbose, TEXT("CheckSceneForCommandManager"));
         // Expensive check - don't do it every tick
-        AActor* Actor = UGameplayStatics::GetActorOfClass(GetWorld(), AAdventureCharacter::StaticClass());
-        if (ACommandManager *CommandInScene = Cast<ACommandManager>(Actor))
+        AActor* Actor = UGameplayStatics::GetActorOfClass(GetWorld(), ACommandManager::StaticClass());
+        if (ACommandManager* CommandInScene = Cast<ACommandManager>(Actor))
         {
             SetupCommandManager(CommandInScene);
         }
         CommandCheck = CommandCheckInterval;
+        if (!bShouldWarnCommandManagerNotAdded && SceneLoadStatus == ESceneLoadStatus::Loaded)
+        {
+            bShouldWarnCommandManagerNotAdded = true; // next time thru will throw warning
+        }
+        if (bShouldWarnCommandManagerNotAdded)
+        {
+#if WITH_EDITOR
+            FString LevelName = "Unknown level";
+            if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(
+                UGameplayStatics::GetGameInstance(this)))
+            {
+                LevelName = AdventureGameInstance->CurrentLevelName.ToString();
+            }
+            FString ErrorMessage = FString::Printf(TEXT("CommandManager object missing in %s"), *LevelName);
+            GEngine->AddOnScreenDebugMessage(10, 10.0, FColor::Red,
+                                             *ErrorMessage, false, FVector2D(2.0, 2.0));
+            UE_LOG(LogAdventureGame, Error, TEXT("SetupAIController error. %s"), *ErrorMessage);
+            bShouldWarnCommandManagerNotAdded = false;
+#endif
+        }
     }
 }
 
@@ -153,23 +171,23 @@ void AAdventurePlayerController::CheckForLoadStartingScene()
         UGameplayStatics::GetGameInstance(this)))
     {
         if (AdventureGameInstance->GetRoomTransitionPhase() != ERoomTransitionPhase::RoomCurrent)
-        {   
+        {
             /// Load the starting room 
             AdventureGameInstance->OnLoadRoom();
             SceneLoadStatus = ESceneLoadStatus::Loading;
             return;
         }
-        UE_LOG(LogAdventureGame, Warning, TEXT("Checked for load when state is: %s"), 
-            *UEnum::GetValueAsString(AdventureGameInstance->GetRoomTransitionPhase()));
+        UE_LOG(LogAdventureGame, Warning, TEXT("Checked for load when state is: %s"),
+               *UEnum::GetValueAsString(AdventureGameInstance->GetRoomTransitionPhase()));
     }
 #if WITH_EDITOR
-    UGameInstance *GameInstance = UGameplayStatics::GetGameInstance(this);
+    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
     const auto Name = GameInstance ? GameInstance->GetName() : "";
-    UE_LOG(LogAdventureGame, Error, TEXT("Could not get UAdventureGameInstance, got %s"),*Name);
+    UE_LOG(LogAdventureGame, Error, TEXT("Could not get UAdventureGameInstance, got %s"), *Name);
 #endif
 }
 
-void AAdventurePlayerController::HandleRoomTransition(ERoomTransitionPhase RoomPhase)
+void AAdventurePlayerController::HandleRoomTransition(const ERoomTransitionPhase RoomPhase)
 {
     if (SceneLoadStatus == ESceneLoadStatus::Loading)
     {
@@ -178,9 +196,13 @@ void AAdventurePlayerController::HandleRoomTransition(ERoomTransitionPhase RoomP
             SceneLoadStatus = ESceneLoadStatus::Loaded;
         }
     }
+    if (RoomPhase == ERoomTransitionPhase::UnloadOldRoom)
+    {
+        Command = nullptr;
+    }
 }
 
-void AAdventurePlayerController::SetupCommandManager(ACommandManager *NewCommandManager)
+void AAdventurePlayerController::SetupCommandManager(ACommandManager* NewCommandManager)
 {
     check(NewCommandManager);
     Command = NewCommandManager;
@@ -203,7 +225,7 @@ APawn* AAdventurePlayerController::SetupPuck(AAdventureCharacter* APlayerCharact
         PuckClassToSpawn,
         FSpawnLocation,
         FRotator::ZeroRotator);
-
+    
     return NewPuck;
 }
 
@@ -216,9 +238,9 @@ void AAdventurePlayerController::SetupAIController(APawn* AttachToPawn)
     if (!AdventureAIController)
     {
         FString ErrorMessage = FString::Printf(TEXT("AIController not found on character %s - check its blueprint"),
-            *AttachToPawn->GetName());
+                                               *AttachToPawn->GetName());
         GEngine->AddOnScreenDebugMessage(1, 10.0, FColor::Red,
-        *ErrorMessage,false, FVector2D(2.0, 2.0));
+                                         *ErrorMessage, false, FVector2D(2.0, 2.0));
         UE_LOG(LogAdventureGame, Error, TEXT("SetupAIController error. %s"), *ErrorMessage);
     }
 #endif
@@ -268,6 +290,14 @@ void AAdventurePlayerController::EndTaskAction(EInteractionType InteractionType,
         EndAction.Broadcast(InteractionType, UID, Complete);
     }
     PlayerInteractUID = 0;
+}
+
+void AAdventurePlayerController::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+{
+    FString OldPawnDescription = OldPawn ? OldPawn->GetName() : "OldPawn - null";
+    FString NewPawnDescription = NewPawn ? NewPawn->GetName() : "NewPawn - null";
+    UE_LOG(LogAdventureGame, Warning, TEXT("AAdventurePlayerController::HandlePossessedPawnChanged - %s > %s"),
+        *OldPawnDescription, *NewPawnDescription);
 }
 
 AHotSpot* AAdventurePlayerController::HotSpotClicked()

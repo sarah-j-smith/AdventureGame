@@ -6,6 +6,7 @@
 #include "AdventureGame/HUD/AdventureGameHUD.h"
 #include "AdventureGame/AdventureGame.h"
 #include "AdventureGame/HotSpots/HotSpot.h"
+#include "AdventureGame/Items/InventoryItem.h"
 
 #include "AdventureAIController.h"
 #include "AdventureCharacter.h"
@@ -14,7 +15,6 @@
 #include "ItemManager.h"
 #include "Puck.h"
 #include "TestBarkController.h"
-#include "AdventureGame/Gameplay/AdventureGameMode.h"
 #include "AdventureGame/Gameplay/AdventureGameModeBase.h"
 
 #include "GameFramework/PawnMovementComponent.h"
@@ -36,7 +36,7 @@ ACommandManager::ACommandManager()
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Construct: ACommandManager"));
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Construct: ACommandManager - %p"), this);
 
     InteractionNotifier = CreateDefaultSubobject<UInteractionNotifier>(TEXT("InteractionNotifier"));
     ItemManager = CreateDefaultSubobject<UItemManager>(TEXT("ItemManager"));
@@ -51,8 +51,22 @@ void ACommandManager::BeginPlay()
     ConnectToMoveCompletedDelegate();
     SetupHUD();
     
-    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager"));
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager - %p"), this);
     if (!bDisableHUDUpdates) UpdateInteractionTextDelegate.Broadcast();
+}
+
+void ACommandManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+    
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("EndPlay: ACommandManager - %p"), this);
+}
+
+void ACommandManager::Destroyed()
+{
+    Super::Destroyed();
+    
+    UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Destroyed: ACommandManager - %p"), this);
 }
 
 // Called every frame

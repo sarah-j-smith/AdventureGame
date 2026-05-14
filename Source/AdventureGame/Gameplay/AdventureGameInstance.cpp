@@ -12,6 +12,7 @@
 #include "AdventureGame/HUD/AdvGameUtils.h"
 #include "AdventureGame/HotSpots/Door.h"
 #include "AdventureGame/Items/ItemList.h"
+#include "AdventureGame/Items/InventoryItem.h"
 
 #include "GameFramework/SaveGame.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -312,6 +313,11 @@ void UAdventureGameInstance::LoadRoom()
 	// Load the room whose level name is in CurrentLevelName, then call OnRoomLoaded.
 	// This is done when there is a scene, and a player controller, we must blank the screen,
 	// stop player input, and unload that previous level (that unload is done in OnRoomLoaded). 
+	// Note that the order is:
+	//    * Load new room
+	//    * Unload old room
+	// So there is a brief period where two rooms are loaded at the same time. This is how level
+	// streaming is supposed to work.
 	RoomTransitionPhase = ERoomTransitionPhase::LoadNewRoom;
 	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 	if (ACommandManager *Command = GetCommandManager())
