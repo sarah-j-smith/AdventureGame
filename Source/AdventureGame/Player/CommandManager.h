@@ -40,18 +40,23 @@ class AHotSpot;
 /// Delegate class used by the Player Controller to manage commands issued
 /// by the player, and to track the current state of command interactions
 /// such as walk to location, hotspot or use verb on item or hotspot
+/// One of these should be dropped into each level.
 UCLASS(BlueprintType, Blueprintable)
-class ADVENTUREGAME_API ACommandManager : public AActor, public IAdventureControllerProvider, public IBarkProvider
+class ADVENTUREGAME_API ACommandManager : public AActor, 
+    public IAdventureControllerProvider, public IBarkProvider
 {
     GENERATED_BODY()
 
-public:
-    // Sets default values for this actor's properties
-    ACommandManager();
 
+protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
+    
+public:
+    // Sets default values for this actor's properties
+    ACommandManager();
+    
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 

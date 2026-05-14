@@ -7,6 +7,7 @@
 #include "AdventureCharacter.h"
 #include "Puck.h"
 
+#include "AdventureGame/Gameplay/AdvBlueprintFunctionLibrary.h"
 #include "AdventureGame/AdventureGame.h"
 #include "AdventureGame/Gameplay/AdventureSave.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"
@@ -31,6 +32,20 @@ AAdventurePlayerController::AAdventurePlayerController()
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("Construct: AAdventurePlayerController"));
 }
 
+void AAdventurePlayerController::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    
+    if (Command == nullptr)
+    {
+        CheckSceneForCommandManager(DeltaSeconds);
+    }
+    if (SceneLoadStatus == ESceneLoadStatus::NotLoaded)
+    {
+        CheckForLoadStartingScene();
+    }
+}
+
 void AAdventurePlayerController::BeginPlay()
 {
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT(">>>> BeginPlay: AAdventurePlayerController"));
@@ -42,22 +57,15 @@ void AAdventurePlayerController::BeginPlay()
     PlayerCharacter = Cast<AAdventureCharacter>(PlayerPawn);
     check(PlayerCharacter);
     SetupAnimationDelegates();
-
-    /// Set up commands and the HUD
-    SetupCommandManager();
     
     Puck = SetupPuck(PlayerCharacter);
     SetupAIController(PlayerCharacter);
-    Command->ConnectToMoveCompletedDelegate();
-
+    
     SaveGameToSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnSaveGameComplete);
     LoadGameFromSlotDelegate.BindUObject(this, &AAdventurePlayerController::OnLoadGameComplete);
-
-    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(UGameplayStatics::GetGameInstance(this)))
-    {
-        /// Load the starting room
-        AdventureGameInstance->OnLoadRoom();
-    }
+    
+    UAdventureGameInstance* AdventureGameInstance = UAdvBlueprintFunctionLibrary::GetAdventureInstance(this);
+    AdventureGameInstance->RoomTransitionedDelegate.AddDynamic(this, &AAdventurePlayerController::HandleRoomTransition);
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("<<<< BeginPlay: AAdventurePlayerController"));
 }
@@ -121,20 +129,65 @@ void AAdventurePlayerController::SetupAnimationDelegates()
     PlayerCharacter->AnimationCompleteDelegate.AddDynamic(this, &AAdventurePlayerController::OnPlayerAnimationComplete);
 }
 
-void AAdventurePlayerController::SetupCommandManager()
+void AAdventurePlayerController::CheckSceneForCommandManager(float DeltaTime)
 {
-    AActor* Actor = UGameplayStatics::GetActorOfClass(GetWorld(), ACommandManager::StaticClass());
-    if (ACommandManager* CommandManager = Cast<ACommandManager>(Actor))
+    checkf(Command == nullptr, TEXT("Only call this if we need to set the Command instance"));
+    // Look in the scene every CommandCheckInterval seconds for the Command Manager
+    CommandCheck -= DeltaTime;
+    if (CommandCheck <= 0.0f)
     {
-        UE_LOG(LogAdventureGame, Display, TEXT("Found ACommandManager in scene, using it"));
-        Command = CommandManager;
+        // Expensive check - don't do it every tick
+        AActor* Actor = UGameplayStatics::GetActorOfClass(GetWorld(), AAdventureCharacter::StaticClass());
+        if (ACommandManager *CommandInScene = Cast<ACommandManager>(Actor))
+        {
+            SetupCommandManager(CommandInScene);
+        }
+        CommandCheck = CommandCheckInterval;
     }
-    else
+}
+
+void AAdventurePlayerController::CheckForLoadStartingScene()
+{
+    checkf(SceneLoadStatus == ESceneLoadStatus::NotLoaded, TEXT("Only call this if we need to load the scene"));
+    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(
+        UGameplayStatics::GetGameInstance(this)))
     {
-        UE_LOG(LogAdventureGame, Display, TEXT("Spawning %s - none found in scene"), *CommandManagerToSpawn->GetName());
-        Actor = GetWorld()->SpawnActor(CommandManagerToSpawn);
-        Command = Cast<ACommandManager>(Actor);
+        if (AdventureGameInstance->GetRoomTransitionPhase() != ERoomTransitionPhase::RoomCurrent)
+        {   
+            /// Load the starting room 
+            AdventureGameInstance->OnLoadRoom();
+            SceneLoadStatus = ESceneLoadStatus::Loading;
+            return;
+        }
+        UE_LOG(LogAdventureGame, Warning, TEXT("Checked for load when state is: %s"), 
+            *UEnum::GetValueAsString(AdventureGameInstance->GetRoomTransitionPhase()));
     }
+#if WITH_EDITOR
+    UGameInstance *GameInstance = UGameplayStatics::GetGameInstance(this);
+    const auto Name = GameInstance ? GameInstance->GetName() : "";
+    UE_LOG(LogAdventureGame, Error, TEXT("Could not get UAdventureGameInstance, got %s"),*Name);
+#endif
+}
+
+void AAdventurePlayerController::HandleRoomTransition(ERoomTransitionPhase RoomPhase)
+{
+    if (SceneLoadStatus == ESceneLoadStatus::Loading)
+    {
+        if (RoomPhase == ERoomTransitionPhase::RoomCurrent)
+        {
+            SceneLoadStatus = ESceneLoadStatus::Loaded;
+        }
+    }
+}
+
+void AAdventurePlayerController::SetupCommandManager(ACommandManager *NewCommandManager)
+{
+    check(NewCommandManager);
+    Command = NewCommandManager;
+    Command->ConnectToMoveCompletedDelegate();
+    APuck* NewPuck = Cast<APuck>(Puck);
+    check(NewPuck != nullptr);
+    Command->AddInputHandlers(NewPuck);
 }
 
 APawn* AAdventurePlayerController::SetupPuck(AAdventureCharacter* APlayerCharacter) const
@@ -151,7 +204,6 @@ APawn* AAdventurePlayerController::SetupPuck(AAdventureCharacter* APlayerCharact
         FSpawnLocation,
         FRotator::ZeroRotator);
 
-    Command->AddInputHandlers(NewPuck);
     return NewPuck;
 }
 

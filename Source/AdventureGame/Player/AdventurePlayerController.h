@@ -36,12 +36,24 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FUpdateSaveGameIndicator, ESaveGameStatus /
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FEndAction, EInteractionType /* Interaction */, int32 /* UID */, bool /* Completed */);
 
 /**
+ * Player Controller for the Point & Click 2D Adventure Game. The order of construction and
+ * begin play is:
  * 
+ * Game launches and main level loads, then:
+ * <pre>
+ *  Instance / class                Loaded by
+ * AdventureGameMode              Project settings for the main game 
+ * AdventurePlayerController      AdventureGameMode
+ * </pre>
  */
 UCLASS()
 class ADVENTUREGAME_API AAdventurePlayerController : public APlayerController
 {
 	GENERATED_BODY()
+	
+protected:
+	virtual void BeginPlay() override;
+	
 public:
 
 	AAdventurePlayerController();
@@ -53,7 +65,7 @@ public:
 	
 	FEndAction EndAction;
 
-	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	//////////////////////////////////
 	///
@@ -97,6 +109,22 @@ public:
 private:
 	FVector2D LastMouseClick = FVector2D(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 
+	const float CommandCheckInterval = 0.2f;
+	float CommandCheck = CommandCheckInterval;	
+	void CheckSceneForCommandManager(float DeltaTime);
+	
+	enum class ESceneLoadStatus : uint8
+	{
+		NotLoaded,
+		Loading,
+		Loaded,
+	};
+	ESceneLoadStatus SceneLoadStatus = ESceneLoadStatus::NotLoaded;
+	void CheckForLoadStartingScene();
+	
+	UFUNCTION()
+	void HandleRoomTransition(ERoomTransitionPhase RoomPhase);
+	
 public:
 	//////////////////////////////////
 	///
@@ -111,7 +139,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Commands")
 	TSubclassOf<ACommandManager> CommandManagerToSpawn = ACommandManager::StaticClass();
 
-	void SetupCommandManager();
+	void SetupCommandManager(ACommandManager *NewCommandManager);
 	
 	/// Has the player currently issued a command?
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Commands")

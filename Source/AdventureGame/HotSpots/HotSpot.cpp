@@ -39,9 +39,11 @@ void AHotSpot::BeginPlay()
 		UE_LOG(LogAdventureGame, Warning, TEXT("%s %s - BeginPlay()- static mesh NOT valid"), *HotSpotType, *HotSpotName);
 	}
 	Super::BeginPlay();
-	const APawn *PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	WalkToPosition = WalkToPoint->GetComponentLocation();
-	WalkToPosition.Z = PlayerPawn->GetActorLocation().Z;
+	if (const APawn *PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0))
+	{
+		WalkToPosition.Z = PlayerPawn->GetActorLocation().Z;
+	}
 
 	RegisterForSaveAndLoad();
 	DataLoad.ExecuteIfBound(this);

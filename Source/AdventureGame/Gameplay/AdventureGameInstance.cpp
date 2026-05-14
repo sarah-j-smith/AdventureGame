@@ -146,6 +146,7 @@ void UAdventureGameInstance::LoadStartingRoom()
 	UE_LOG(LogAdventureGame, Log, TEXT("UAdventureGameInstance::LoadStartingRoom - %s"),
 		*StartingLevelName.ToString());
 	RoomTransitionPhase = ERoomTransitionPhase::LoadStartingRoom;
+	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 
 	FLatentActionInfo LatentActionInfo = GetLatentActionForHandler(OnRoomLoadedName);
 	UGameplayStatics::LoadStreamLevel(this, StartingLevelName,
@@ -161,11 +162,13 @@ void UAdventureGameInstance::OnRoomLoaded()
 		CurrentLevelName = StartingLevelName;
 		CurrentDoorLabel = StartingDoorLabel;
 		RoomTransitionPhase = ERoomTransitionPhase::NewRoomLoaded;
+		RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 		NewRoomDelay();
 		break;
 	case ERoomTransitionPhase::LoadNewRoom:
 		UE_LOG(LogAdventureGame, Log, TEXT("UAdventureGameInstance::OnRoomLoaded - LoadNewRoom"));
 		RoomTransitionPhase = ERoomTransitionPhase::NewRoomLoaded;
+		RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 		UnloadRoom();
 	default:
 		UE_LOG(LogAdventureGame, Warning, TEXT("Unexpected state during OnRoomLoaded"));
@@ -176,7 +179,8 @@ void UAdventureGameInstance::OnRoomLoaded()
 void UAdventureGameInstance::NewRoomDelay()
 {
 	RoomTransitionPhase = ERoomTransitionPhase::DelayProcessing;
-	
+	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
+
 	GetWorld()->GetTimerManager().SetTimer(
 		RoomLoadTimer, this,
 		&UAdventureGameInstance::OnRoomLoadTimerTimeout, RoomLoadDelay, false);
@@ -222,6 +226,7 @@ void UAdventureGameInstance::StartNewRoom()
 		Command->SetInputLocked(false);
 	}
 	RoomTransitionPhase = ERoomTransitionPhase::RoomCurrent;
+	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 }
 
 void UAdventureGameInstance::OnRoomUnloaded()
@@ -232,6 +237,7 @@ void UAdventureGameInstance::OnRoomUnloaded()
 void UAdventureGameInstance::TriggerRoomTransition()
 {
 	RoomTransitionPhase = ERoomTransitionPhase::RoomCurrent;
+	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 	OnLoadRoom();
 }
 
@@ -307,6 +313,7 @@ void UAdventureGameInstance::LoadRoom()
 	// This is done when there is a scene, and a player controller, we must blank the screen,
 	// stop player input, and unload that previous level (that unload is done in OnRoomLoaded). 
 	RoomTransitionPhase = ERoomTransitionPhase::LoadNewRoom;
+	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 	if (ACommandManager *Command = GetCommandManager())
 	{
 		Command->SetInputLocked(true);
@@ -331,6 +338,7 @@ void UAdventureGameInstance::UnloadRoom()
 		}
 	}
 	RoomTransitionPhase = ERoomTransitionPhase::UnloadOldRoom;
+	RoomTransitionedDelegate.Broadcast(RoomTransitionPhase);
 	FLatentActionInfo LatentActionInfo = GetLatentActionForHandler(OnRoomUnloadedName);
 	UGameplayStatics::UnloadStreamLevel(GetWorld(), CurrentDoor->CurrentLevel, LatentActionInfo, false);
 }

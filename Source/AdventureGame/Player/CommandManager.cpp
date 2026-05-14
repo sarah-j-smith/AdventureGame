@@ -59,7 +59,7 @@ void ACommandManager::BeginPlay()
 void ACommandManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
+    
     if (ShouldInterruptCurrentActionOnNextTick())
     {
         InterruptCurrentAction();
