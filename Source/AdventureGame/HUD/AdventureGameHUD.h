@@ -27,11 +27,13 @@ UCLASS()
 class ADVENTUREGAME_API UAdventureGameHUD : public UUserWidget, public IItemManagerProvider
 {
 	GENERATED_BODY()
-public:
+
+protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	
 	virtual void NativeOnInitialized() override;
 
+public:
 	static UAdventureGameHUD *Create(APlayerController *PlayerController, TSubclassOf<UAdventureGameHUD> AdventureHUDClass);
 
 	/// Subscribe to messages for command & action updates to show in the interaction display.

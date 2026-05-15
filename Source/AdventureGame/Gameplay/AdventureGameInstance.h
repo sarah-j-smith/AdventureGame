@@ -206,7 +206,7 @@ public:
 	<pre>	
 	On game start:
 	
-	Member function called      |    State
+	Member function called      | State at call
 	--------------------------- | ------------------
 	OnLoadRoom()                | GameNotStarted
 	LoadStartingRoom()          | LoadStartingRoom

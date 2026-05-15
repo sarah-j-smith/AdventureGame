@@ -7,6 +7,8 @@
 #include "AdventureGame/AdventureGame.h"
 
 #include "AdventureGame/Items/InventoryItem.h"
+#include "AdventureGame/Items/AssetActionComponent.h"
+
 #include "AdventureGame/Player/AdventurePlayerController.h"
 #include "AdventureGame/Enums/AdventureGameplayTags.h"
 #include "AdventureGame/Gameplay/AdventureGameInstance.h"
@@ -21,6 +23,8 @@ AHotSpot::AHotSpot()
 	WalkToPoint = CreateDefaultSubobject<USphereComponent>(TEXT("PlayerDetectorSphere"));
 	WalkToPoint->SetupAttachment(RootComponent);
 	WalkToPoint->SetSphereRadius(4.0f);
+	
+	AssetActionComponent = CreateDefaultSubobject<UAssetActionComponent>(TEXT("AssetActionComponent"));
 }
 
 void AHotSpot::BeginPlay()
@@ -233,7 +237,7 @@ void AHotSpot::OnItemUsed_Implementation()
 				{
 					UGameplayStatics::PlaySound2D(this, ItemDataAsset->UseSuccessSound);
 				}
-				ItemDataAsset->OnItemUseSuccess();
+				AssetActionComponent->OnItemUseSuccess(ItemDataAsset);
 				return;
 			}
 		}
@@ -254,7 +258,7 @@ void AHotSpot::OnItemGiven_Implementation()
 		{
 			if (ItemManager->SourceItem->ItemKind == ItemDataAsset->SourceItem)
 			{
-				ItemDataAsset->OnItemGiveSuccess();
+				AssetActionComponent->OnItemGiveSuccess(ItemDataAsset);
 				return;
 			}
 		}

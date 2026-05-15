@@ -38,8 +38,9 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FEndAction, EInteractionType /* Interacti
  * 
  * Game launches and main level loads, then:
  * <pre>
- *  Instance / class                    Loaded by
- *    AdventureGameMode              Project settings for the main game 
+ *  Instance / class                    Specified in / Loaded by
+ *    AdventureGameInstance          Project settings
+ *    AdventureGameMode              Project settings 
  *    AdventurePlayerController      AdventureGameMode
  *    
  * </pre>
@@ -105,11 +106,12 @@ public:
 	
 private:
 	FVector2D LastMouseClick = FVector2D(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-
-	bool bShouldWarnCommandManagerNotAdded = false;
+	
+	bool bCommandManagerNotFound = false;
 	const float CommandCheckInterval = 0.2f;
 	float CommandCheck = CommandCheckInterval;	
 	void CheckSceneForCommandManager(float DeltaTime);
+	void ResetCommandManager();
 	
 	enum class ESceneLoadStatus : uint8
 	{
@@ -119,6 +121,8 @@ private:
 	};
 	ESceneLoadStatus SceneLoadStatus = ESceneLoadStatus::NotLoaded;
 	void CheckForLoadStartingScene();
+	
+	void DisplayWarningIfCommandManagerNotAdded();
 	
 	UFUNCTION()
 	void HandleRoomTransition(const ERoomTransitionPhase RoomPhase);

@@ -7,7 +7,7 @@
 #include "AdventureGame/AdventureGame.h"
 #include "AdventureGame/HotSpots/HotSpot.h"
 #include "AdventureGame/Items/InventoryItem.h"
-
+#include "AdventureGame/Items/AssetActionComponent.h"
 #include "AdventureAIController.h"
 #include "AdventureCharacter.h"
 #include "AdventurePlayerController.h"
@@ -24,7 +24,7 @@ void ShowLocationDebug(float LocationX, float LocationY, const FString& Location
 {
 #if WITH_EDITOR
     const FString Message = FString::Printf(TEXT("%s x: %f, y: %f"), *LocationMessage, LocationX, LocationY);
-    GEngine->AddOnScreenDebugMessage(1, 5.0, FColor::Cyan,
+    GEngine->AddOnScreenDebugMessage(LOCATION_DEBUG_KEY, 5.0, FColor::Cyan,
                                      *Message, false, FVector2D(2.0, 2.0));
     UE_LOG(LogAdventureGame, Display, TEXT("%s"), *Message);
 #endif
@@ -41,14 +41,14 @@ ACommandManager::ACommandManager()
     InteractionNotifier = CreateDefaultSubobject<UInteractionNotifier>(TEXT("InteractionNotifier"));
     ItemManager = CreateDefaultSubobject<UItemManager>(TEXT("ItemManager"));
     PlayerBarkManager = CreateDefaultSubobject<UPlayerBarkManager>(TEXT("PlayerBark"));
+    AssetActionComponent = CreateDefaultSubobject<UAssetActionComponent>("AssetActionComponent");
 }
 
 // Called when the game starts or when spawned
 void ACommandManager::BeginPlay()
 {
     Super::BeginPlay();
-
-    ConnectToMoveCompletedDelegate();
+    
     SetupHUD();
     
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("BeginPlay: ACommandManager - %p"), this);
@@ -352,6 +352,14 @@ void ACommandManager::ConnectToMoveCompletedDelegate()
     }
 }
 
+void ACommandManager::DisconnectFromMoveCompletedDelegate()
+{
+    if (AAdventureAIController *AdventureAIController = GetAIController())
+    {
+        AdventureAIController->MoveCompletedDelegate.RemoveDynamic(this, &ACommandManager::HandleAIMovementCompleteNotify);
+    }
+}
+
 void ACommandManager::HandleAIMovementCompleteNotify(EPathFollowingResult::Type Result)
 {
     UE_LOG(LogAdventureGame, VeryVerbose, TEXT("HandleAIMovementCompleteNotify"));
@@ -602,7 +610,6 @@ void ACommandManager::SetupHUD()
     // Create the HUD and put it on the screen
     APlayerController *PlayerController = UGameplayStatics::GetPlayerController(this, 0);
     AdventureGameHUD = UAdventureGameHUD::Create(PlayerController, AdventureHUDClass);
-    AdventureGameHUD->AddToViewport();
     AdventureGameHUD->ShowBlackScreen(); // Hide the game while its being loaded
     
     // Send button presses from the HUD to the Command Manager

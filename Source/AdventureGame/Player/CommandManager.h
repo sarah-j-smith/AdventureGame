@@ -20,6 +20,7 @@
 
 #include "CommandManager.generated.h"
 
+class UAssetActionComponent;
 class UAdventureGameInstance;
 class UAdventureGameHUD;
 class AAdventureAIController;
@@ -121,6 +122,9 @@ public:
     ///
     /// PERFORM COMMANDS
     ///
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Actions")
+    UAssetActionComponent* AssetActionComponent;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items")
     UItemManager* ItemManager;
@@ -202,6 +206,8 @@ public:
     };
 
     void ConnectToMoveCompletedDelegate();
+    
+    void DisconnectFromMoveCompletedDelegate();
 
     /**
      * Called by AI Controller to notify that pathing is finished. Can be immediately & synchronously

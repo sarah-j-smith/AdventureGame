@@ -73,3 +73,9 @@ constexpr int32 GMax_Number_Of_Prompts = 5;
 #define BARK_LINE_DELAY 2.0f
 #define BARK_LINE_WIDTH 30
 #define INVALID_BARK_DELAY -99.0f
+
+#define LOCATION_DEBUG_KEY 1
+#define DIALOGUE_FILL_KEY 2
+#define DOOR_ERRORS_KEY 3
+#define COMMAND_MANAGER_WARNING_KEY 4
+

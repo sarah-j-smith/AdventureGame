@@ -128,6 +128,7 @@ void AAdventurePlayerController::SetupAnimationDelegates()
 
 void AAdventurePlayerController::CheckSceneForCommandManager(float DeltaTime)
 {
+    if (bCommandManagerNotFound) return;
     checkf(Command == nullptr, TEXT("Only call this if we need to set the Command instance"));
     // Look in the scene every CommandCheckInterval seconds for the Command Manager
     CommandCheck -= DeltaTime;
@@ -139,29 +140,23 @@ void AAdventurePlayerController::CheckSceneForCommandManager(float DeltaTime)
         if (ACommandManager* CommandInScene = Cast<ACommandManager>(Actor))
         {
             SetupCommandManager(CommandInScene);
+            return;
         }
         CommandCheck = CommandCheckInterval;
-        if (!bShouldWarnCommandManagerNotAdded && SceneLoadStatus == ESceneLoadStatus::Loaded)
+        if (SceneLoadStatus == ESceneLoadStatus::Loaded)
         {
-            bShouldWarnCommandManagerNotAdded = true; // next time thru will throw warning
-        }
-        if (bShouldWarnCommandManagerNotAdded)
-        {
-#if WITH_EDITOR
-            FString LevelName = "Unknown level";
-            if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(
-                UGameplayStatics::GetGameInstance(this)))
-            {
-                LevelName = AdventureGameInstance->CurrentLevelName.ToString();
-            }
-            FString ErrorMessage = FString::Printf(TEXT("CommandManager object missing in %s"), *LevelName);
-            GEngine->AddOnScreenDebugMessage(10, 10.0, FColor::Red,
-                                             *ErrorMessage, false, FVector2D(2.0, 2.0));
-            UE_LOG(LogAdventureGame, Error, TEXT("SetupAIController error. %s"), *ErrorMessage);
-            bShouldWarnCommandManagerNotAdded = false;
-#endif
+            DisplayWarningIfCommandManagerNotAdded();
+            bCommandManagerNotFound = true; // stop looking
         }
     }
+}
+
+void AAdventurePlayerController::ResetCommandManager()
+{
+    Command->DisconnectFromMoveCompletedDelegate();
+    Command = nullptr; 
+    bCommandManagerNotFound = false;
+    CommandCheck = CommandCheckInterval;
 }
 
 void AAdventurePlayerController::CheckForLoadStartingScene()
@@ -187,6 +182,22 @@ void AAdventurePlayerController::CheckForLoadStartingScene()
 #endif
 }
 
+void AAdventurePlayerController::DisplayWarningIfCommandManagerNotAdded()
+{
+#if WITH_EDITOR
+    FString LevelName = "Unknown level";
+    if (UAdventureGameInstance* AdventureGameInstance = Cast<UAdventureGameInstance>(
+        UGameplayStatics::GetGameInstance(this)))
+    {
+        LevelName = AdventureGameInstance->CurrentLevelName.ToString();
+    }
+    const FString ErrorMessage = FString::Printf(TEXT("CommandManager object missing in %s"), *LevelName);
+    GEngine->AddOnScreenDebugMessage(COMMAND_MANAGER_WARNING_KEY, 10.0, FColor::Red,
+                                     *ErrorMessage, false, FVector2D(2.0, 2.0));
+    UE_LOG(LogAdventureGame, Error, TEXT("SetupAIController error. %s"), *ErrorMessage);
+#endif
+}
+
 void AAdventurePlayerController::HandleRoomTransition(const ERoomTransitionPhase RoomPhase)
 {
     if (SceneLoadStatus == ESceneLoadStatus::Loading)
@@ -198,7 +209,7 @@ void AAdventurePlayerController::HandleRoomTransition(const ERoomTransitionPhase
     }
     if (RoomPhase == ERoomTransitionPhase::UnloadOldRoom)
     {
-        Command = nullptr;
+        ResetCommandManager();
     }
 }
 

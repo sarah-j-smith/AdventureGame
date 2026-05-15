@@ -19,7 +19,7 @@
  * without having to write huge blueprints for common use cases.
  */
 UCLASS()
-class ADVENTUREGAME_API UItemDataAsset : public UPrimaryDataAsset, public IItemManagerProvider, public IBarkProvider
+class ADVENTUREGAME_API UItemDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
@@ -105,46 +105,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float InteractionTimeout = 5.0f;
 
-	UFUNCTION(BlueprintCallable, Category="ItemAction")
-	void StartTimer();
-
-	UFUNCTION(BlueprintCallable, Category="ItemAction")
-	void StopTimer();
-
-	/// Triggered when this item is the <b>target</b> of a use verb, and it successfully
-	/// passes initial checks. The source item of the use verb is found by querying
-	/// the adventure player controller's <code>SourceItem</code> property.
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemHandling")
-	void OnItemUseSuccess();
-
-	/// Triggered when this item is the <b>target</b> of a give verb, and it successfully
-	/// passes initial checks. The source item of the give verb is found by querying
-	/// the adventure player controller's <code>SourceItem</code> property.
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemHandling")
-	void OnItemGiveSuccess();
-
-	/// Triggered when this item is the <b>target</b> of a use verb, and it successfully
-	/// passes initial checks. The source item of the use verb is found by querying
-	/// the adventure player controller's <code>SourceItem</code> property.
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemHandling")
-	void OnItemUseFailure();
-
-	/// Triggered when this item is the <b>target</b> of a give verb, and it successfully
-	/// passes initial checks. The source item of the give verb is found by querying
-	/// the adventure player controller's <code>SourceItem</code> property.
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemHandling")
-	void OnItemGiveFailure();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool TimerRunning = false;
-	
-	UFUNCTION()
-	void OnInteractionTimeout();
-	
-	FTimerHandle ActionHighlightTimerHandle;
-private:
-	void HandleSourceItem(EItemAssetType ItemAssetType, bool &Success);
-	void HandleTargetItem(EItemAssetType ItemAssetType, bool &Success);
-
-	void HandleKeyCase(bool &Success);
 };

@@ -213,6 +213,10 @@ void UAdventureGameInstance::SetupRoom()
 	{
 		Command->InterruptCurrentAction();
 	}
+	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+	{
+		StartNewRoom();
+	});
 }
 
 void UAdventureGameInstance::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const

@@ -8,6 +8,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "AdventureGame/Gameplay/VerbInteractions.h"
 #include "AdventureGame/Enums/WalkDirection.h"
+
 #include "Components/SphereComponent.h"
 #include "AdventureGame/Items/ItemDataAsset.h"
 #include "AdventureGame/Items/ItemDataList.h"
@@ -16,6 +17,7 @@
 #include "HotSpot.generated.h"
 
 enum class EVerbType : uint8;
+class UAssetActionComponent;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataSave, AHotSpot *, HotSpot);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FHotSpotDataLoad, AHotSpot *, HotSpot);
@@ -29,13 +31,12 @@ class ADVENTUREGAME_API AHotSpot : public AStaticMeshActor, public IVerbInteract
 {
 	GENERATED_BODY()
 
-public:
-	AHotSpot();
-	
+protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+public:
 	//////////////////////////////////
 	///
 	/// SAVE AND LOAD
@@ -43,6 +44,8 @@ public:
 
 	FHotSpotDataLoad DataLoad;
 	FHotSpotDataSave DataSave;
+
+	AHotSpot();
 
 	virtual FGameplayTagContainer GetTags() const;
 	virtual void SetTags(const FGameplayTagContainer& Tags);
@@ -172,6 +175,9 @@ public:
 	/// PLAYER ACTIONS
 	///
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Actions")
+	UAssetActionComponent* AssetActionComponent;
+	
 	/// True if this HotSpot is a <b>Pickup</b>, which has a sprite component
 	/// for displaying an in-game appearance - or is it just a hotspot with
 	/// a clickable mesh?
