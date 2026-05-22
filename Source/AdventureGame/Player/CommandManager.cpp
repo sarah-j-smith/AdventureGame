@@ -372,6 +372,22 @@ void ACommandManager::HandleAIMovementCompleteNotify(EPathFollowingResult::Type 
         LastPathResult = EAIMoveResult::Success;
         ShouldCompleteMovementNextTick = true;
     }
+    else if (Result == EPathFollowingResult::Invalid)
+    {
+        if (AIStatus == EAIStatus::MakingRequest)
+        {
+            AIStatus = EAIStatus::Done;
+#if WITH_EDITOR
+            const FString Message = FString::Printf(
+                TEXT("AI movement invalid %s - is agent and nav mesh correct?"), 
+                *TargetLocationForAI.ToString());
+            GEngine->AddOnScreenDebugMessage(1, 5.0, FColor::Cyan,
+                                             *Message, false, FVector2D(2.0, 2.0));
+            UE_LOG(LogAdventureGame, Warning, TEXT("%s"), *Message);
+#endif
+        }
+        ShouldCompleteMovementNextTick = true;
+    }
     else
     {
         if (CurrentHotSpot && (Result == EPathFollowingResult::Blocked || Result == EPathFollowingResult::OffPath))

@@ -48,7 +48,16 @@ void AAdventureCharacter::BeginPlay()
 void AAdventureCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	static float DebugTimer = 10.0f;
 
+	DebugTimer -= DeltaTime;
+	if (DebugTimer <= 0.0f)
+	{
+		DebugTimer = 10.0f;
+		UE_LOG(LogAdventureGame, Warning, TEXT("AAdventureCharacter: %s"), *GetActorLocation().ToString());
+	}
+	
 	// This is used just to feed in the PaperZD Set direction for the sprite facing
 	const UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	FVector2D Velocity = FVector2D(MovementComponent->Velocity.X, MovementComponent->Velocity.Y);
