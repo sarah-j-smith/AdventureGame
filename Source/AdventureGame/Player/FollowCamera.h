@@ -109,7 +109,11 @@ private:
 	/// Initialise the control values for the box that defines the camera confines.
 	void InitialiseCameraConfines();
 
-	/// Confines of a box that the POSITION (center/pivot) of the camera must be in.
+	/// Confines extent of a box that the POSITION (center/pivot) of the camera must be in.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="FollowCamera", meta=(AllowPrivateAccess=true))
 	FVector ConfineMax;
+	
+	/// Confines extent of a box that the POSITION (center/pivot) of the camera must be in.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="FollowCamera", meta=(AllowPrivateAccess=true))
 	FVector ConfineMin;
 };

@@ -1,5 +1,11 @@
 # Adventure Game in Unreal Engine
 
+**_DEPRECATED: DO NOT USE_**
+
+This project is replaced by [Adventure Game Template](https://github.com/sarah-j-smith/AdventureGameTemplate/)
+
+# Archived Content
+
 My Dev Environment:
 
 * Mac M3
